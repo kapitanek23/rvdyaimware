@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moja Strona</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            /* Ciemne tło */
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Styl nakładki powitalnej (wymuszenie kliknięcia dla dźwięku) */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        #overlay h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        #overlay p {
+            font-size: 1.2rem;
+            color: #bbb;
+            border: 1px solid #bbb;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+
+        /* Kontener na filmy */
+        .container {
+            width: 90%;
+            max-width: 800px;
+            /* Maksymalna szerokość na PC */
+            padding: 20px 0;
+            display: none;
+            /* Ukryte dopóki nie klikniesz w overlay */
+            flex-direction: column;
+            gap: 30px;
+            /* Odstęp między filmami */
+        }
+
+        /* Stylizacja embedów */
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            /* Proporcje 16:9 */
+            height: 0;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="overlay">
+        <h1>Witaj</h1>
+        <p>Kliknij, aby wejść</p>
+    </div>
+
+    <audio id="bg-music" loop>
+        <source src="muzyka.mp3" type="audio/mpeg">
+        Twoja przeglądarka nie obsługuje elementu audio.
+    </audio>
+
+    <div class="container" id="main-content">
+
+        <div class="video-wrapper">
+            <iframe src="https://www.youtube.com/embed/-2K4ad4tRh4" title="YouTube video player"
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
+                loading="lazy"> </iframe>
+        </div>
+
+        <div class="video-wrapper">
+            <iframe src="https://www.youtube.com/embed/oL1wo-KRw_0" title="YouTube video player" allowfullscreen
+                loading="lazy">
+            </iframe>
+        </div>
+
+    </div>
+
+    <script>
+        const overlay = document.getElementById('overlay');
+        const audio = document.getElementById('bg-music');
+        const content = document.getElementById('main-content');
+
+        overlay.addEventListener('click', () => {
+            // Próba odtworzenia dźwięku
+            audio.play().then(() => {
+                // Jeśli się uda, ukryj overlay i pokaż treść
+                overlay.style.display = 'none';
+                content.style.display = 'flex';
+            }).catch(error => {
+                console.log("Błąd odtwarzania:", error);
+                // Fallback: nawet jak audio nie pójdzie, pokaż treść
+                overlay.style.display = 'none';
+                content.style.display = 'flex';
+            });
+        });
+    </script>
+</body>
+
+</html>
