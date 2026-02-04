@@ -60,14 +60,12 @@
         /* Kontener na filmy */
         .container {
             width: 90%;
-            max-width: 800px;
+            max-width: 900px;
             /* Maksymalna szerokość na PC */
             padding: 20px 0;
             display: none;
             /* Ukryte dopóki nie klikniesz w overlay */
             flex-direction: column;
-            gap: 30px;
-            /* Odstęp między filmami */
         }
 
         /* Stylizacja embedów */
@@ -129,6 +127,115 @@
         .trivia-content.fade-in {
             opacity: 1;
         }
+
+        /* Slider filmów */
+        .video-slider {
+            position: relative;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .video-slider-container {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .video-slide {
+            display: none;
+            width: 100%;
+        }
+
+        .video-slide.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Strzałki */
+        .slider-arrow {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            color: #121212;
+            font-size: 3rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            font-weight: 300;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .slider-arrow:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .slider-arrow:active {
+            transform: scale(0.95);
+        }
+
+        /* Wskaźniki */
+        .video-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .indicator:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1.2);
+        }
+
+        .indicator.active {
+            background: rgba(255, 255, 255, 0.9);
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Responsywność */
+        @media (max-width: 768px) {
+            .video-slider {
+                gap: 10px;
+            }
+            
+            .slider-arrow {
+                width: 40px;
+                height: 40px;
+                font-size: 2rem;
+            }
+        }
     </style>
 </head>
 
@@ -146,16 +253,35 @@
 
     <div class="container" id="main-content">
 
-        <div class="video-wrapper">
-            <iframe src="https://www.youtube.com/embed/-2K4ad4tRh4" title="YouTube video player"
-                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
-                loading="lazy"> </iframe>
+        <!-- Slider filmów -->
+        <div class="video-slider">
+            <button class="slider-arrow slider-arrow-left" id="prev-video">‹</button>
+            
+            <div class="video-slider-container">
+                <div class="video-slide active">
+                    <div class="video-wrapper">
+                        <iframe src="https://www.youtube.com/embed/-2K4ad4tRh4" title="YouTube video player"
+                            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
+                            loading="lazy"> </iframe>
+                    </div>
+                </div>
+                
+                <div class="video-slide">
+                    <div class="video-wrapper">
+                        <iframe src="https://www.youtube.com/embed/oL1wo-KRw_0" title="YouTube video player" allowfullscreen
+                            loading="lazy">
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="slider-arrow slider-arrow-right" id="next-video">›</button>
         </div>
-
-        <div class="video-wrapper">
-            <iframe src="https://www.youtube.com/embed/oL1wo-KRw_0" title="YouTube video player" allowfullscreen
-                loading="lazy">
-            </iframe>
+        
+        <!-- Wskaźniki -->
+        <div class="video-indicators" id="video-indicators">
+            <span class="indicator active" data-slide="0"></span>
+            <span class="indicator" data-slide="1"></span>
         </div>
 
         <!-- Sekcja ciekawostek -->
@@ -186,6 +312,90 @@
                 content.style.display = 'flex';
             });
         });
+
+        // Video Slider
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.video-slide');
+        const indicators = document.querySelectorAll('.indicator');
+        const totalSlides = slides.length;
+
+        function showSlide(index) {
+            // Zapętlenie
+            if (index >= totalSlides) {
+                currentSlide = 0;
+            } else if (index < 0) {
+                currentSlide = totalSlides - 1;
+            } else {
+                currentSlide = index;
+            }
+            
+            // Ukryj wszystkie slajdy
+            slides.forEach(slide => slide.classList.remove('active'));
+            indicators.forEach(indicator => indicator.classList.remove('active'));
+            
+            // Pokaż aktywny slajd
+            slides[currentSlide].classList.add('active');
+            indicators[currentSlide].classList.add('active');
+            
+            // Zatrzymaj wszystkie filmy YouTube (pause)
+            const iframes = document.querySelectorAll('.video-slide iframe');
+            iframes.forEach(iframe => {
+                const src = iframe.src;
+                iframe.src = src; // Reset iframe zatrzymuje odtwarzanie
+            });
+        }
+
+        // Nawigacja strzałkami
+        document.getElementById('prev-video').addEventListener('click', () => {
+            showSlide(currentSlide - 1);
+        });
+
+        document.getElementById('next-video').addEventListener('click', () => {
+            showSlide(currentSlide + 1);
+        });
+
+        // Kliknięcie w wskaźniki
+        indicators.forEach(indicator => {
+            indicator.addEventListener('click', () => {
+                const slideIndex = parseInt(indicator.getAttribute('data-slide'));
+                showSlide(slideIndex);
+            });
+        });
+
+        // Obsługa klawiatury (strzałki)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                showSlide(currentSlide - 1);
+            } else if (e.key === 'ArrowRight') {
+                showSlide(currentSlide + 1);
+            }
+        });
+
+        // Touch/swipe na mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        const sliderContainer = document.querySelector('.video-slider-container');
+
+        sliderContainer.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, false);
+
+        sliderContainer.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, false);
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) {
+                // Swipe left
+                showSlide(currentSlide + 1);
+            }
+            if (touchEndX > touchStartX + 50) {
+                // Swipe right
+                showSlide(currentSlide - 1);
+            }
+        }
 
         // System ciekawostek
         let triviaList = [];
