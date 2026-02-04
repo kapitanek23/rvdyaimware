@@ -310,7 +310,7 @@
         const SUPABASE_URL = 'https://bzfcrejxacssugqlalax.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6ZmNyZWp4YWNzc3VncWxhbGF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyMzk4NzcsImV4cCI6MjA4NTgxNTg3N30.cioiRx548NGQDckDR5N_ZweXuSOHMrzV-k7k_9ipfT0';
         const { createClient } = window.supabase;
-        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // Constants
         const LOCAL_UPDATE_TIMEOUT = 1000; // 1 second
