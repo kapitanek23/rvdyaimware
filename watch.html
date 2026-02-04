@@ -371,6 +371,32 @@
         function onPlayerReady(event) {
             isPlayerReady = true;
             console.log('Player ready');
+            
+            // Spróbuj zsyncować stan jeśli był opóźniony
+            syncPlayerStateOnReady();
+        }
+
+        // Nowa funkcja pomocnicza
+        async function syncPlayerStateOnReady() {
+            try {
+                const { data: playerState } = await sb
+                    .from('player_state')
+                    .select('*')
+                    .single();
+                
+                if (playerState && player && isPlayerReady) {
+                    localUpdate = true;
+                    player.seekTo(playerState.current_time || 0, true);
+                    if (playerState.is_playing) {
+                        player.playVideo();
+                    } else {
+                        player.pauseVideo();
+                    }
+                    setTimeout(() => { localUpdate = false; }, 1000);
+                }
+            } catch (error) {
+                console.error('Error syncing player state on ready:', error);
+            }
         }
 
         function onPlayerStateChange(event) {
@@ -466,8 +492,17 @@
 
                 renderQueue(queue, playerState?.current_video_id);
 
-                // Play first video if nothing playing
-                if (queue.length > 0 && !playerState?.current_video_id) {
+                // NOWA LOGIKA: Załaduj player jeśli:
+                // 1. Jest ustawiony current_video_id w player_state
+                // 2. Player jeszcze nie istnieje
+                if (playerState?.current_video_id && !player) {
+                    console.log('Loading existing video from player_state:', playerState.current_video_id);
+                    createPlayer(playerState.current_video_id);
+                    // Synchronizacja stanu nastąpi automatycznie w syncPlayerStateOnReady() gdy player będzie gotowy
+                }
+                // STARA LOGIKA: Jeśli nic nie leci i jest coś w kolejce - odpal pierwszy film
+                else if (queue && queue.length > 0 && !playerState?.current_video_id) {
+                    console.log('Starting first video from queue');
                     playVideo(queue[0].youtube_id, queue[0].id);
                 }
             } catch (error) {
@@ -628,6 +663,8 @@
                     .upsert({
                         session_id: sessionId,
                         last_seen: new Date().toISOString()
+                    }, {
+                        onConflict: 'session_id'
                     });
 
                 // Clean old users
@@ -642,7 +679,7 @@
                     .from('online_users')
                     .select('*');
 
-                document.getElementById('online-count').textContent = data.length;
+                document.getElementById('online-count').textContent = data ? data.length : 0;
             } catch (error) {
                 console.error('Error updating presence:', error);
             }
@@ -654,10 +691,14 @@
 
         // Cleanup on page unload
         window.addEventListener('beforeunload', async () => {
-            await sb
-                .from('online_users')
-                .delete()
-                .eq('session_id', sessionId);
+            try {
+                await sb
+                    .from('online_users')
+                    .delete()
+                    .eq('session_id', sessionId);
+            } catch (error) {
+                // Ignore errors on unload
+            }
         });
     </script>
 </body>
