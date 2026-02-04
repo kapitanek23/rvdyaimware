@@ -89,6 +89,46 @@
             height: 100%;
             border: 0;
         }
+
+        /* Sekcja ciekawostek */
+        .trivia-section {
+            width: 100%;
+            margin-top: 50px;
+            padding: 30px;
+            background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+            border: 1px solid #333;
+        }
+
+        .trivia-section h2 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .trivia-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #e0e0e0;
+            text-align: center;
+            padding: 20px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .trivia-content.fade-out {
+            opacity: 0;
+        }
+
+        .trivia-content.fade-in {
+            opacity: 1;
+        }
     </style>
 </head>
 
@@ -118,6 +158,14 @@
             </iframe>
         </div>
 
+        <!-- Sekcja ciekawostek -->
+        <div class="trivia-section">
+            <h2>💡 Ciekawe ciekawostki</h2>
+            <div class="trivia-content" id="trivia-text">
+                Ładowanie ciekawostki...
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -138,6 +186,61 @@
                 content.style.display = 'flex';
             });
         });
+
+        // System ciekawostek
+        let triviaList = [];
+        let currentTriviaIndex = -1;
+        let triviaTimeout;
+        
+        // Stałe czasowe
+        const BASE_DISPLAY_TIME = 8000; // 8 sekund podstawowy czas
+        const TIME_PER_WORD = 400; // 0.4 sekundy za każde słowo
+        const FADE_DURATION = 500; // 0.5 sekundy animacja fade
+
+        // Pobierz ciekawostki z pliku JSON
+        fetch('ciekawostki.json')
+            .then(response => response.json())
+            .then(data => {
+                triviaList = data;
+                showRandomTrivia(); // Pokaż pierwszą ciekawostkę
+            })
+            .catch(error => {
+                console.error('Błąd ładowania ciekawostek:', error);
+                document.getElementById('trivia-text').textContent = 
+                    'Nie udało się załadować ciekawostek 😔';
+            });
+
+        function showRandomTrivia() {
+            if (triviaList.length === 0) return;
+            
+            const triviaElement = document.getElementById('trivia-text');
+            
+            // Fade out
+            triviaElement.classList.add('fade-out');
+            
+            setTimeout(() => {
+                // Wybierz losową ciekawostkę (inną niż poprzednia)
+                let newIndex;
+                do {
+                    newIndex = Math.floor(Math.random() * triviaList.length);
+                } while (newIndex === currentTriviaIndex && triviaList.length > 1);
+                
+                currentTriviaIndex = newIndex;
+                triviaElement.textContent = triviaList[currentTriviaIndex];
+                
+                // Fade in
+                triviaElement.classList.remove('fade-out');
+                triviaElement.classList.add('fade-in');
+                
+                // Oblicz dynamiczny czas wyświetlania
+                const wordCount = triviaList[currentTriviaIndex].split(' ').length;
+                const displayTime = BASE_DISPLAY_TIME + (wordCount * TIME_PER_WORD);
+                
+                // Zaplanuj następną zmianę
+                clearTimeout(triviaTimeout);
+                triviaTimeout = setTimeout(showRandomTrivia, displayTime);
+            }, FADE_DURATION);
+        }
     </script>
 </body>
 
