@@ -191,6 +191,11 @@
         let triviaList = [];
         let currentTriviaIndex = -1;
         let triviaTimeout;
+        
+        // Stałe czasowe
+        const BASE_DISPLAY_TIME = 8000; // 8 sekund podstawowy czas
+        const TIME_PER_WORD = 400; // 0.4 sekundy za każde słowo
+        const FADE_DURATION = 500; // 0.5 sekundy animacja fade
 
         // Pobierz ciekawostki z pliku JSON
         fetch('ciekawostki.json')
@@ -229,12 +234,12 @@
                 
                 // Oblicz dynamiczny czas wyświetlania
                 const wordCount = triviaList[currentTriviaIndex].split(' ').length;
-                const displayTime = 8000 + (wordCount * 400); // 8 sek + 0.4 sek za słowo
+                const displayTime = BASE_DISPLAY_TIME + (wordCount * TIME_PER_WORD);
                 
                 // Zaplanuj następną zmianę
                 clearTimeout(triviaTimeout);
                 triviaTimeout = setTimeout(showRandomTrivia, displayTime);
-            }, 500); // Czas trwania animacji fade-out
+            }, FADE_DURATION);
         }
     </script>
 </body>
