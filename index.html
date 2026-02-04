@@ -374,6 +374,7 @@
         // Touch/swipe na mobile
         let touchStartX = 0;
         let touchEndX = 0;
+        const SWIPE_THRESHOLD = 50;
 
         const sliderContainer = document.querySelector('.video-slider-container');
 
@@ -387,11 +388,11 @@
         }, false);
 
         function handleSwipe() {
-            if (touchEndX < touchStartX - 50) {
+            if (touchEndX < touchStartX - SWIPE_THRESHOLD) {
                 // Swipe left
                 showSlide(currentSlide + 1);
             }
-            if (touchEndX > touchStartX + 50) {
+            if (touchEndX > touchStartX + SWIPE_THRESHOLD) {
                 // Swipe right
                 showSlide(currentSlide - 1);
             }
