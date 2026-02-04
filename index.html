@@ -14,6 +14,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CHYBA ZOSTALES ROZJEBANY</title>
+    <link rel="stylesheet" href="menu.css">
     <style>
         body {
             margin: 0;
@@ -241,6 +242,32 @@
 
 <body>
 
+    <!-- Menu Hamburger -->
+    <button class="menu-toggle" id="menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>MENU</h2>
+        </div>
+        <div class="sidebar-nav">
+            <a href="index.html"><span>🏠</span> Home</a>
+            <a href="rvdy.html"><span>🎬</span> rvdy</a>
+            <a href="legit.html"><span>✓</span> legit</a>
+            <a href="dawidek.html"><span>👤</span> Dawidek</a>
+            <a href="saju.html"><span>🎮</span> Saju</a>
+            <a href="bibi.html"><span>🐱</span> Bibi</a>
+            <a href="watch.html"><span>📺</span> Oglądanie</a>
+        </div>
+    </nav>
+
+    <!-- Overlay -->
+    <div class="menu-overlay" id="menu-overlay"></div>
+
     <div id="overlay">
         <h1>Witaj</h1>
         <p>Kliknij, aby zobaczyć co potrafi rvdyaimware</p>
@@ -453,6 +480,7 @@
             }, FADE_DURATION);
         }
     </script>
+    <script src="menu.js"></script>
 </body>
 
 
