@@ -498,19 +498,7 @@
                 if (playerState?.current_video_id && !player) {
                     console.log('Loading existing video from player_state:', playerState.current_video_id);
                     createPlayer(playerState.current_video_id);
-                    
-                    // Po utworzeniu playera - zsyncuj czas i stan play/pause
-                    setTimeout(() => {
-                        if (isPlayerReady && player) {
-                            console.log('Syncing player state:', playerState);
-                            player.seekTo(playerState.current_time || 0, true);
-                            if (playerState.is_playing) {
-                                player.playVideo();
-                            } else {
-                                player.pauseVideo();
-                            }
-                        }
-                    }, 2000); // Czekaj 2 sekundy aż player będzie gotowy
+                    // Synchronizacja stanu nastąpi automatycznie w syncPlayerStateOnReady() gdy player będzie gotowy
                 }
                 // STARA LOGIKA: Jeśli nic nie leci i jest coś w kolejce - odpal pierwszy film
                 else if (queue && queue.length > 0 && !playerState?.current_video_id) {
