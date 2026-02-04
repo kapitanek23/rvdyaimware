@@ -392,12 +392,12 @@
         // Update player state in Supabase
         async function updatePlayerState(isPlaying, currentTime) {
             try {
-                const { data: currentState } = await supabase
+                const { data: currentState } = await sb
                     .from('player_state')
                     .select('*')
                     .single();
 
-                await supabase
+                await sb
                     .from('player_state')
                     .update({
                         is_playing: isPlaying,
@@ -425,7 +425,7 @@
 
             try {
                 // Get max position
-                const { data: queue } = await supabase
+                const { data: queue } = await sb
                     .from('queue')
                     .select('position')
                     .order('position', { ascending: false })
@@ -434,7 +434,7 @@
                 const newPosition = queue.length > 0 ? queue[0].position + 1 : 0;
 
                 // Add to queue
-                await supabase
+                await sb
                     .from('queue')
                     .insert({
                         youtube_id: videoId,
@@ -454,12 +454,12 @@
         // Load queue
         async function loadQueue() {
             try {
-                const { data: queue } = await supabase
+                const { data: queue } = await sb
                     .from('queue')
                     .select('*')
                     .order('position', { ascending: true });
 
-                const { data: playerState } = await supabase
+                const { data: playerState } = await sb
                     .from('player_state')
                     .select('*')
                     .single();
@@ -506,12 +506,12 @@
         async function playVideo(videoId, queueId) {
             try {
                 // Update player_state
-                const { data: state } = await supabase
+                const { data: state } = await sb
                     .from('player_state')
                     .select('*')
                     .single();
 
-                await supabase
+                await sb
                     .from('player_state')
                     .update({
                         current_video_id: videoId,
@@ -537,12 +537,12 @@
         // Play next video
         async function playNextVideo() {
             try {
-                const { data: playerState } = await supabase
+                const { data: playerState } = await sb
                     .from('player_state')
                     .select('*')
                     .single();
 
-                const { data: queue } = await supabase
+                const { data: queue } = await sb
                     .from('queue')
                     .select('*')
                     .order('position', { ascending: true });
@@ -554,7 +554,7 @@
                     playVideo(nextVideo.youtube_id, nextVideo.id);
                 } else {
                     // No more videos
-                    await supabase
+                    await sb
                         .from('player_state')
                         .update({
                             current_video_id: null,
@@ -570,7 +570,7 @@
         // Remove from queue
         window.removeFromQueue = async function(id) {
             try {
-                await supabase
+                await sb
                     .from('queue')
                     .delete()
                     .eq('id', id);
@@ -582,7 +582,7 @@
         };
 
         // Realtime subscriptions
-        supabase
+        sb
             .channel('player_state_changes')
             .on('postgres_changes', {
                 event: 'UPDATE',
@@ -609,7 +609,7 @@
             })
             .subscribe();
 
-        supabase
+        sb
             .channel('queue_changes')
             .on('postgres_changes', {
                 event: '*',
@@ -623,7 +623,7 @@
         // Online presence
         async function updatePresence() {
             try {
-                await supabase
+                await sb
                     .from('online_users')
                     .upsert({
                         session_id: sessionId,
@@ -632,13 +632,13 @@
 
                 // Clean old users
                 const tenSecondsAgo = new Date(Date.now() - USER_TIMEOUT_MS).toISOString();
-                await supabase
+                await sb
                     .from('online_users')
                     .delete()
                     .lt('last_seen', tenSecondsAgo);
 
                 // Count online
-                const { data } = await supabase
+                const { data } = await sb
                     .from('online_users')
                     .select('*');
 
@@ -654,7 +654,7 @@
 
         // Cleanup on page unload
         window.addEventListener('beforeunload', async () => {
-            await supabase
+            await sb
                 .from('online_users')
                 .delete()
                 .eq('session_id', sessionId);
