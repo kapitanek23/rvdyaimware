@@ -312,6 +312,11 @@
         const { createClient } = window.supabase;
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // Constants
+        const LOCAL_UPDATE_TIMEOUT = 1000; // 1 second
+        const USER_TIMEOUT_MS = 10000; // 10 seconds
+        const PRESENCE_UPDATE_INTERVAL = 5000; // 5 seconds
+
         // Globals
         let player;
         let isPlayerReady = false;
@@ -320,7 +325,7 @@
 
         // Generate unique session ID
         function generateSessionId() {
-            return 'session_' + Math.random().toString(36).substr(2, 9) + Date.now();
+            return 'session_' + Math.random().toString(36).substring(2, 11) + Date.now();
         }
 
         // Extract YouTube ID from URL
@@ -522,7 +527,7 @@
                 } else {
                     localUpdate = true;
                     player.loadVideoById(videoId);
-                    setTimeout(() => { localUpdate = false; }, 1000);
+                    setTimeout(() => { localUpdate = false; }, LOCAL_UPDATE_TIMEOUT);
                 }
             } catch (error) {
                 console.error('Error playing video:', error);
@@ -600,7 +605,7 @@
                     player.pauseVideo();
                 }
 
-                setTimeout(() => { localUpdate = false; }, 1000);
+                setTimeout(() => { localUpdate = false; }, LOCAL_UPDATE_TIMEOUT);
             })
             .subscribe();
 
@@ -625,8 +630,8 @@
                         last_seen: new Date().toISOString()
                     });
 
-                // Clean old users (>10 sec)
-                const tenSecondsAgo = new Date(Date.now() - 10000).toISOString();
+                // Clean old users
+                const tenSecondsAgo = new Date(Date.now() - USER_TIMEOUT_MS).toISOString();
                 await supabase
                     .from('online_users')
                     .delete()
@@ -643,8 +648,8 @@
             }
         }
 
-        // Update presence every 5 seconds
-        setInterval(updatePresence, 5000);
+        // Update presence periodically
+        setInterval(updatePresence, PRESENCE_UPDATE_INTERVAL);
         updatePresence();
 
         // Cleanup on page unload
