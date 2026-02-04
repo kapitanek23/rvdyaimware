@@ -17,24 +17,209 @@
             background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
             color: #ffffff;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            padding: 20px;
         }
 
-        .coming-soon {
+        .watch-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 20px;
+        }
+
+        .watch-header {
             text-align: center;
-            padding: 50px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
         }
 
-        .coming-soon h1 {
-            font-size: 3rem;
-            margin-bottom: 20px;
+        .watch-header h1 {
+            font-size: 2rem;
         }
 
-        .coming-soon p {
-            font-size: 1.2rem;
+        .online-counter {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .online-counter .dot {
+            width: 10px;
+            height: 10px;
+            background: #00ff00;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .player-section {
+            background: #1a1a1a;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+        }
+
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 10px;
+            background: #000;
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .no-video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
             color: #888;
+        }
+
+        .controls-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .add-video-section, .queue-section {
+            background: #1a1a1a;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+        }
+
+        .add-video-section h2, .queue-section h2 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .add-video-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .add-video-form input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #0d0d0d;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .add-video-form input:focus {
+            outline: none;
+            border-color: #666;
+        }
+
+        .add-video-form button {
+            padding: 12px 25px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #121212;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .add-video-form button:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.05);
+        }
+
+        .queue-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .queue-item {
+            background: #0d0d0d;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .queue-item:hover {
+            background: #1a1a1a;
+        }
+
+        .queue-item.playing {
+            border-left: 4px solid #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .queue-item-info {
+            flex: 1;
+        }
+
+        .queue-item-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .queue-item-meta {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .queue-item-actions button {
+            background: rgba(255, 0, 0, 0.7);
+            color: #fff;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .queue-item-actions button:hover {
+            background: rgba(255, 0, 0, 1);
+        }
+
+        .empty-queue {
+            text-align: center;
+            color: #888;
+            padding: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .controls-section {
+                grid-template-columns: 1fr;
+            }
+
+            .watch-header {
+                flex-direction: column;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -65,12 +250,415 @@
     <!-- Overlay -->
     <div class="menu-overlay" id="menu-overlay"></div>
 
-    <!-- Content -->
-    <div class="coming-soon">
-        <h1>📺 Oglądanie razem</h1>
-        <p>Wkrótce...</p>
+    <!-- Watch Together Content -->
+    <div class="watch-container">
+        <div class="watch-header">
+            <h1>📺 Oglądanie razem</h1>
+            <div class="online-counter">
+                <div class="dot"></div>
+                <span>Online: <strong id="online-count">0</strong></span>
+            </div>
+        </div>
+
+        <!-- Player -->
+        <div class="player-section">
+            <div class="video-wrapper" id="video-wrapper">
+                <div class="no-video">
+                    <h2>🎬</h2>
+                    <p>Dodaj film, aby rozpocząć oglądanie</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls and Queue -->
+        <div class="controls-section">
+            <!-- Add Video -->
+            <div class="add-video-section">
+                <h2>➕ Dodaj film</h2>
+                <form class="add-video-form" id="add-video-form">
+                    <input 
+                        type="text" 
+                        id="youtube-url" 
+                        placeholder="Wklej link YouTube..." 
+                        required
+                    >
+                    <button type="submit">Dodaj</button>
+                </form>
+            </div>
+
+            <!-- Queue -->
+            <div class="queue-section">
+                <h2>📋 Kolejka</h2>
+                <div class="queue-list" id="queue-list">
+                    <div class="empty-queue">Brak filmów w kolejce</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="menu.js"></script>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    
+    <!-- Watch Together Logic -->
+    <script>
+        // Supabase Setup
+        const SUPABASE_URL = 'https://bzfcrejxacssugqlalax.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6ZmNyZWp4YWNzc3VncWxhbGF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyMzk4NzcsImV4cCI6MjA4NTgxNTg3N30.cioiRx548NGQDckDR5N_ZweXuSOHMrzV-k7k_9ipfT0';
+        const { createClient } = window.supabase;
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Constants
+        const LOCAL_UPDATE_TIMEOUT = 1000; // 1 second
+        const USER_TIMEOUT_MS = 10000; // 10 seconds
+        const PRESENCE_UPDATE_INTERVAL = 5000; // 5 seconds
+
+        // Globals
+        let player;
+        let isPlayerReady = false;
+        let localUpdate = false;
+        let sessionId = generateSessionId();
+
+        // Generate unique session ID
+        function generateSessionId() {
+            return 'session_' + Math.random().toString(36).substring(2, 11) + Date.now();
+        }
+
+        // Extract YouTube ID from URL
+        function extractYouTubeId(url) {
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\?\/]+)/,
+                /^([a-zA-Z0-9_-]{11})$/
+            ];
+            
+            for (let pattern of patterns) {
+                const match = url.match(pattern);
+                if (match) return match[1];
+            }
+            return null;
+        }
+
+        // YouTube Player Init
+        function onYouTubeIframeAPIReady() {
+            console.log('YouTube API Ready');
+            loadQueue();
+        }
+
+        // Create Player
+        function createPlayer(videoId) {
+            const wrapper = document.getElementById('video-wrapper');
+            wrapper.innerHTML = '<div id="youtube-player"></div>';
+            
+            player = new YT.Player('youtube-player', {
+                videoId: videoId,
+                playerVars: {
+                    autoplay: 1,
+                    controls: 1,
+                    modestbranding: 1,
+                    rel: 0
+                },
+                events: {
+                    onReady: onPlayerReady,
+                    onStateChange: onPlayerStateChange
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            isPlayerReady = true;
+            console.log('Player ready');
+        }
+
+        function onPlayerStateChange(event) {
+            if (localUpdate) return;
+
+            const state = event.data;
+            const currentTime = player.getCurrentTime();
+            
+            // YT.PlayerState: PLAYING=1, PAUSED=2, ENDED=0
+            if (state === YT.PlayerState.PLAYING) {
+                updatePlayerState(true, currentTime);
+            } else if (state === YT.PlayerState.PAUSED) {
+                updatePlayerState(false, currentTime);
+            } else if (state === YT.PlayerState.ENDED) {
+                playNextVideo();
+            }
+        }
+
+        // Update player state in Supabase
+        async function updatePlayerState(isPlaying, currentTime) {
+            try {
+                const { data: currentState } = await supabase
+                    .from('player_state')
+                    .select('*')
+                    .single();
+
+                await supabase
+                    .from('player_state')
+                    .update({
+                        is_playing: isPlaying,
+                        current_time: currentTime,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', currentState.id);
+            } catch (error) {
+                console.error('Error updating player state:', error);
+            }
+        }
+
+        // Add video to queue
+        document.getElementById('add-video-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const input = document.getElementById('youtube-url');
+            const url = input.value.trim();
+            const videoId = extractYouTubeId(url);
+            
+            if (!videoId) {
+                alert('Nieprawidłowy link YouTube!');
+                return;
+            }
+
+            try {
+                // Get max position
+                const { data: queue } = await supabase
+                    .from('queue')
+                    .select('position')
+                    .order('position', { ascending: false })
+                    .limit(1);
+
+                const newPosition = queue.length > 0 ? queue[0].position + 1 : 0;
+
+                // Add to queue
+                await supabase
+                    .from('queue')
+                    .insert({
+                        youtube_id: videoId,
+                        title: 'Film YouTube',
+                        position: newPosition,
+                        added_by: 'Użytkownik'
+                    });
+
+                input.value = '';
+                loadQueue();
+            } catch (error) {
+                console.error('Error adding video:', error);
+                alert('Błąd dodawania filmu!');
+            }
+        });
+
+        // Load queue
+        async function loadQueue() {
+            try {
+                const { data: queue } = await supabase
+                    .from('queue')
+                    .select('*')
+                    .order('position', { ascending: true });
+
+                const { data: playerState } = await supabase
+                    .from('player_state')
+                    .select('*')
+                    .single();
+
+                renderQueue(queue, playerState?.current_video_id);
+
+                // Play first video if nothing playing
+                if (queue.length > 0 && !playerState?.current_video_id) {
+                    playVideo(queue[0].youtube_id, queue[0].id);
+                }
+            } catch (error) {
+                console.error('Error loading queue:', error);
+            }
+        }
+
+        // Render queue
+        function renderQueue(queue, currentVideoId) {
+            const list = document.getElementById('queue-list');
+            
+            if (queue.length === 0) {
+                list.innerHTML = '<div class="empty-queue">Brak filmów w kolejce</div>';
+                return;
+            }
+
+            list.innerHTML = queue.map((item, index) => `
+                <div class="queue-item ${item.youtube_id === currentVideoId ? 'playing' : ''}">
+                    <div class="queue-item-info">
+                        <div class="queue-item-title">
+                            ${item.youtube_id === currentVideoId ? '▶ ' : ''}
+                            ${index + 1}. ${item.title}
+                        </div>
+                        <div class="queue-item-meta">
+                            Dodał: ${item.added_by}
+                        </div>
+                    </div>
+                    <div class="queue-item-actions">
+                        <button onclick="removeFromQueue(${item.id})">Usuń</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Play video
+        async function playVideo(videoId, queueId) {
+            try {
+                // Update player_state
+                const { data: state } = await supabase
+                    .from('player_state')
+                    .select('*')
+                    .single();
+
+                await supabase
+                    .from('player_state')
+                    .update({
+                        current_video_id: videoId,
+                        current_time: 0,
+                        is_playing: true,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', state.id);
+
+                // Create or load player
+                if (!player) {
+                    createPlayer(videoId);
+                } else {
+                    localUpdate = true;
+                    player.loadVideoById(videoId);
+                    setTimeout(() => { localUpdate = false; }, LOCAL_UPDATE_TIMEOUT);
+                }
+            } catch (error) {
+                console.error('Error playing video:', error);
+            }
+        }
+
+        // Play next video
+        async function playNextVideo() {
+            try {
+                const { data: playerState } = await supabase
+                    .from('player_state')
+                    .select('*')
+                    .single();
+
+                const { data: queue } = await supabase
+                    .from('queue')
+                    .select('*')
+                    .order('position', { ascending: true });
+
+                const currentIndex = queue.findIndex(v => v.youtube_id === playerState.current_video_id);
+                
+                if (currentIndex < queue.length - 1) {
+                    const nextVideo = queue[currentIndex + 1];
+                    playVideo(nextVideo.youtube_id, nextVideo.id);
+                } else {
+                    // No more videos
+                    await supabase
+                        .from('player_state')
+                        .update({
+                            current_video_id: null,
+                            is_playing: false
+                        })
+                        .eq('id', playerState.id);
+                }
+            } catch (error) {
+                console.error('Error playing next video:', error);
+            }
+        }
+
+        // Remove from queue
+        window.removeFromQueue = async function(id) {
+            try {
+                await supabase
+                    .from('queue')
+                    .delete()
+                    .eq('id', id);
+
+                loadQueue();
+            } catch (error) {
+                console.error('Error removing video:', error);
+            }
+        };
+
+        // Realtime subscriptions
+        supabase
+            .channel('player_state_changes')
+            .on('postgres_changes', {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'player_state'
+            }, (payload) => {
+                if (!player || !isPlayerReady) return;
+
+                const newState = payload.new;
+                localUpdate = true;
+
+                if (newState.current_video_id && player.getVideoData().video_id !== newState.current_video_id) {
+                    player.loadVideoById(newState.current_video_id, newState.current_time);
+                }
+
+                if (newState.is_playing) {
+                    player.playVideo();
+                    player.seekTo(newState.current_time, true);
+                } else {
+                    player.pauseVideo();
+                }
+
+                setTimeout(() => { localUpdate = false; }, LOCAL_UPDATE_TIMEOUT);
+            })
+            .subscribe();
+
+        supabase
+            .channel('queue_changes')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'queue'
+            }, () => {
+                loadQueue();
+            })
+            .subscribe();
+
+        // Online presence
+        async function updatePresence() {
+            try {
+                await supabase
+                    .from('online_users')
+                    .upsert({
+                        session_id: sessionId,
+                        last_seen: new Date().toISOString()
+                    });
+
+                // Clean old users
+                const tenSecondsAgo = new Date(Date.now() - USER_TIMEOUT_MS).toISOString();
+                await supabase
+                    .from('online_users')
+                    .delete()
+                    .lt('last_seen', tenSecondsAgo);
+
+                // Count online
+                const { data } = await supabase
+                    .from('online_users')
+                    .select('*');
+
+                document.getElementById('online-count').textContent = data.length;
+            } catch (error) {
+                console.error('Error updating presence:', error);
+            }
+        }
+
+        // Update presence periodically
+        setInterval(updatePresence, PRESENCE_UPDATE_INTERVAL);
+        updatePresence();
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', async () => {
+            await supabase
+                .from('online_users')
+                .delete()
+                .eq('session_id', sessionId);
+        });
+    </script>
 </body>
 </html>
