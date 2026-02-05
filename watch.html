@@ -211,6 +211,60 @@
             padding: 40px;
         }
 
+        .player-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .control-btn {
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .play-btn:hover {
+            background: rgba(0, 255, 0, 0.3);
+        }
+
+        .pause-btn:hover {
+            background: rgba(255, 165, 0, 0.3);
+        }
+
+        .seek-btn:hover {
+            background: rgba(100, 150, 255, 0.3);
+        }
+
+        .sync-btn:hover {
+            background: rgba(255, 255, 0, 0.3);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         @media (max-width: 768px) {
             .controls-section {
                 grid-template-columns: 1fr;
@@ -219,6 +273,15 @@
             .watch-header {
                 flex-direction: column;
                 text-align: center;
+            }
+            
+            .player-controls {
+                gap: 8px;
+            }
+            
+            .control-btn {
+                padding: 10px 15px;
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -262,6 +325,24 @@
 
         <!-- Player -->
         <div class="player-section">
+            <!-- Player Controls -->
+            <div class="player-controls">
+                <button class="control-btn play-btn" id="global-play" title="Odtwórz dla wszystkich">
+                    ▶️ Play
+                </button>
+                <button class="control-btn pause-btn" id="global-pause" title="Zatrzymaj dla wszystkich">
+                    ⏸️ Pause
+                </button>
+                <button class="control-btn seek-btn" id="seek-backward" title="Cofnij 10 sekund">
+                    ⏮️ -10s
+                </button>
+                <button class="control-btn seek-btn" id="seek-forward" title="Przewiń 10 sekund">
+                    ⏭️ +10s
+                </button>
+                <button class="control-btn sync-btn" id="sync-now" title="Synchronizuj z serwerem">
+                    🔄 Sync
+                </button>
+            </div>
             <div class="video-wrapper" id="video-wrapper">
                 <div class="no-video">
                     <h2>🎬</h2>
@@ -616,6 +697,196 @@
             }
         };
 
+        // Global Play Button
+        document.getElementById('global-play').addEventListener('click', async () => {
+            if (!player || !isPlayerReady) {
+                alert('Player nie jest gotowy!');
+                return;
+            }
+            
+            try {
+                const currentTime = player.getCurrentTime();
+                
+                // Update player_state
+                const { data: state } = await sb
+                    .from('player_state')
+                    .select('*')
+                    .single();
+
+                await sb
+                    .from('player_state')
+                    .update({
+                        is_playing: true,
+                        current_time: currentTime,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', state.id);
+
+                // Play locally
+                localUpdate = true;
+                player.playVideo();
+                setTimeout(() => { localUpdate = false; }, LOCAL_UPDATE_TIMEOUT);
+                
+                console.log('Global play triggered');
+            } catch (error) {
+                console.error('Error triggering global play:', error);
+            }
+        });
+
+        // Global Pause Button
+        document.getElementById('global-pause').addEventListener('click', async () => {
+            if (!player || !isPlayerReady) {
+                alert('Player nie jest gotowy!');
+                return;
+            }
+            
+            try {
+                const currentTime = player.getCurrentTime();
+                
+                // Update player_state
+                const { data: state } = await sb
+                    .from('player_state')
+                    .select('*')
+                    .single();
+
+                await sb
+                    .from('player_state')
+                    .update({
+                        is_playing: false,
+                        current_time: currentTime,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', state.id);
+
+                // Pause locally
+                localUpdate = true;
+                player.pauseVideo();
+                setTimeout(() => { localUpdate = false; }, LOCAL_UPDATE_TIMEOUT);
+                
+                console.log('Global pause triggered');
+            } catch (error) {
+                console.error('Error triggering global pause:', error);
+            }
+        });
+
+        // Seek Backward (-10s)
+        document.getElementById('seek-backward').addEventListener('click', async () => {
+            if (!player || !isPlayerReady) {
+                alert('Player nie jest gotowy!');
+                return;
+            }
+            
+            try {
+                const currentTime = player.getCurrentTime();
+                const newTime = Math.max(0, currentTime - 10);
+                
+                // Update player_state
+                const { data: state } = await sb
+                    .from('player_state')
+                    .select('*')
+                    .single();
+
+                await sb
+                    .from('player_state')
+                    .update({
+                        current_time: newTime,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', state.id);
+
+                // Seek locally
+                localUpdate = true;
+                player.seekTo(newTime, true);
+                setTimeout(() => { localUpdate = false; }, LOCAL_UPDATE_TIMEOUT);
+                
+                console.log('Seek backward to:', newTime);
+            } catch (error) {
+                console.error('Error seeking backward:', error);
+            }
+        });
+
+        // Seek Forward (+10s)
+        document.getElementById('seek-forward').addEventListener('click', async () => {
+            if (!player || !isPlayerReady) {
+                alert('Player nie jest gotowy!');
+                return;
+            }
+            
+            try {
+                const currentTime = player.getCurrentTime();
+                const duration = player.getDuration();
+                const newTime = Math.min(duration, currentTime + 10);
+                
+                // Update player_state
+                const { data: state } = await sb
+                    .from('player_state')
+                    .select('*')
+                    .single();
+
+                await sb
+                    .from('player_state')
+                    .update({
+                        current_time: newTime,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', state.id);
+
+                // Seek locally
+                localUpdate = true;
+                player.seekTo(newTime, true);
+                setTimeout(() => { localUpdate = false; }, LOCAL_UPDATE_TIMEOUT);
+                
+                console.log('Seek forward to:', newTime);
+            } catch (error) {
+                console.error('Error seeking forward:', error);
+            }
+        });
+
+        // Manual Sync Button
+        document.getElementById('sync-now').addEventListener('click', async () => {
+            if (!player || !isPlayerReady) {
+                alert('Player nie jest gotowy!');
+                return;
+            }
+            
+            try {
+                const { data: playerState } = await sb
+                    .from('player_state')
+                    .select('*')
+                    .single();
+
+                if (!playerState) {
+                    alert('Brak danych w player_state!');
+                    return;
+                }
+
+                localUpdate = true;
+                
+                // Sync video if different
+                if (playerState.current_video_id && 
+                    player.getVideoData().video_id !== playerState.current_video_id) {
+                    player.loadVideoById(playerState.current_video_id, playerState.current_time || 0);
+                } else {
+                    // Just sync time and state
+                    player.seekTo(playerState.current_time || 0, true);
+                }
+                
+                if (playerState.is_playing) {
+                    player.playVideo();
+                } else {
+                    player.pauseVideo();
+                }
+                
+                setTimeout(() => { localUpdate = false; }, LOCAL_UPDATE_TIMEOUT);
+                
+                console.log('Manual sync completed:', playerState);
+                alert('Zsynchronizowano! ✅');
+            } catch (error) {
+                console.error('Error syncing:', error);
+                alert('Błąd synchronizacji!');
+            }
+        });
+
         // Realtime subscriptions
         sb
             .channel('player_state_changes')
@@ -624,19 +895,39 @@
                 schema: 'public',
                 table: 'player_state'
             }, (payload) => {
-                if (!player || !isPlayerReady) return;
-
-                const newState = payload.new;
-                localUpdate = true;
-
-                if (newState.current_video_id && player.getVideoData().video_id !== newState.current_video_id) {
-                    player.loadVideoById(newState.current_video_id, newState.current_time);
+                if (!player || !isPlayerReady || localUpdate) {
+                    console.log('Skipping sync - player not ready or local update');
+                    return;
                 }
 
-                if (newState.is_playing) {
-                    player.playVideo();
-                    player.seekTo(newState.current_time, true);
+                const newState = payload.new;
+                console.log('Received player state update:', newState);
+                
+                localUpdate = true;
+
+                // Check if video changed
+                if (newState.current_video_id && 
+                    player.getVideoData().video_id !== newState.current_video_id) {
+                    console.log('Loading new video:', newState.current_video_id);
+                    player.loadVideoById(newState.current_video_id, newState.current_time || 0);
                 } else {
+                    // Just sync time
+                    const currentTime = player.getCurrentTime();
+                    const timeDiff = Math.abs(currentTime - (newState.current_time || 0));
+                    
+                    // Only seek if difference > 2 seconds (avoid micro-adjustments)
+                    if (timeDiff > 2) {
+                        console.log('Syncing time:', newState.current_time);
+                        player.seekTo(newState.current_time || 0, true);
+                    }
+                }
+
+                // Sync play/pause state
+                if (newState.is_playing) {
+                    console.log('Playing video');
+                    player.playVideo();
+                } else {
+                    console.log('Pausing video');
                     player.pauseVideo();
                 }
 
