@@ -725,7 +725,7 @@
                 // Play locally
                 localUpdate = true;
                 player.playVideo();
-                setTimeout(() => { localUpdate = false; }, 1000);
+                setTimeout(() => { localUpdate = false; }, LOCAL_UPDATE_TIMEOUT);
                 
                 console.log('Global play triggered');
             } catch (error) {
@@ -761,7 +761,7 @@
                 // Pause locally
                 localUpdate = true;
                 player.pauseVideo();
-                setTimeout(() => { localUpdate = false; }, 1000);
+                setTimeout(() => { localUpdate = false; }, LOCAL_UPDATE_TIMEOUT);
                 
                 console.log('Global pause triggered');
             } catch (error) {
@@ -797,7 +797,7 @@
                 // Seek locally
                 localUpdate = true;
                 player.seekTo(newTime, true);
-                setTimeout(() => { localUpdate = false; }, 1000);
+                setTimeout(() => { localUpdate = false; }, LOCAL_UPDATE_TIMEOUT);
                 
                 console.log('Seek backward to:', newTime);
             } catch (error) {
@@ -834,7 +834,7 @@
                 // Seek locally
                 localUpdate = true;
                 player.seekTo(newTime, true);
-                setTimeout(() => { localUpdate = false; }, 1000);
+                setTimeout(() => { localUpdate = false; }, LOCAL_UPDATE_TIMEOUT);
                 
                 console.log('Seek forward to:', newTime);
             } catch (error) {
@@ -877,7 +877,7 @@
                     player.pauseVideo();
                 }
                 
-                setTimeout(() => { localUpdate = false; }, 1000);
+                setTimeout(() => { localUpdate = false; }, LOCAL_UPDATE_TIMEOUT);
                 
                 console.log('Manual sync completed:', playerState);
                 alert('Zsynchronizowano! ✅');
