@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-CYT76WJHNH"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-CYT76WJHNH');
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHYBA ZOSTALES ROZJEBANY</title>
+    <link rel="stylesheet" href="menu.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            /* Ciemne tło */
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Styl nakładki powitalnej (wymuszenie kliknięcia dla dźwięku) */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        #overlay h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        #overlay p {
+            font-size: 1.2rem;
+            color: #bbb;
+            border: 1px solid #bbb;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+
+        /* Kontener na filmy */
+        .container {
+            width: 90%;
+            max-width: 900px;
+            /* Maksymalna szerokość na PC */
+            padding: 20px 0;
+            display: none;
+            /* Ukryte dopóki nie klikniesz w overlay */
+            flex-direction: column;
+        }
+
+        /* Stylizacja embedów */
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            /* Proporcje 16:9 */
+            height: 0;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        /* Sekcja ciekawostek */
+        .trivia-section {
+            width: 100%;
+            margin-top: 50px;
+            padding: 30px;
+            background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+            border: 1px solid #333;
+        }
+
+        .trivia-section h2 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .trivia-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #e0e0e0;
+            text-align: center;
+            padding: 20px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .trivia-content.fade-out {
+            opacity: 0;
+        }
+
+        .trivia-content.fade-in {
+            opacity: 1;
+        }
+
+        /* Slider filmów */
+        .video-slider {
+            position: relative;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .video-slider-container {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .video-slide {
+            display: none;
+            width: 100%;
+        }
+
+        .video-slide.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Strzałki */
+        .slider-arrow {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            color: #121212;
+            font-size: 3rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            font-weight: 300;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .slider-arrow:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .slider-arrow:active {
+            transform: scale(0.95);
+        }
+
+        /* Wskaźniki */
+        .video-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .indicator:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1.2);
+        }
+
+        .indicator.active {
+            background: rgba(255, 255, 255, 0.9);
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Responsywność */
+        @media (max-width: 768px) {
+            .video-slider {
+                gap: 10px;
+            }
+            
+            .slider-arrow {
+                width: 40px;
+                height: 40px;
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Menu Hamburger -->
+    <button class="menu-toggle" id="menu-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>MENU</h2>
+        </div>
+        <div class="sidebar-nav">
+            <a href="index.html"><span>🏠</span> Home</a>
+            <a href="rvdy.html"><span>🎬</span> rvdy</a>
+            <a href="legit.html"><span>✓</span> legit</a>
+            <a href="dawidek.html"><span>👤</span> Dawidek</a>
+            <a href="saju.html"><span>🎮</span> Saju</a>
+            <a href="bibi.html"><span>🐱</span> Bibi</a>
+            <a href="watch.html"><span>📺</span> Oglądanie</a>
+        </div>
+    </nav>
+
+    <!-- Overlay -->
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <div id="overlay">
+        <h1>Witaj</h1>
+        <p>Kliknij, aby zobaczyć co potrafi rvdyaimware</p>
+    </div>
+
+    <audio id="bg-music">
+        <source src="muzyka.mp3" type="audio/mpeg">
+        Twoja przeglądarka nie obsługuje elementu audio.
+    </audio>
+
+    <div class="container" id="main-content">
+
+        <!-- Slider filmów -->
+        <div class="video-slider">
+            <button class="slider-arrow slider-arrow-left" id="prev-video">‹</button>
+            
+            <div class="video-slider-container">
+                <div class="video-slide active">
+                    <div class="video-wrapper">
+                        <iframe src="https://www.youtube.com/embed/-2K4ad4tRh4" title="YouTube video player"
+                            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
+                            loading="lazy"> </iframe>
+                    </div>
+                </div>
+                
+                <div class="video-slide">
+                    <div class="video-wrapper">
+                        <iframe src="https://www.youtube.com/embed/oL1wo-KRw_0" title="YouTube video player" allowfullscreen
+                            loading="lazy">
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="slider-arrow slider-arrow-right" id="next-video">›</button>
+        </div>
+        
+        <!-- Wskaźniki -->
+        <div class="video-indicators" id="video-indicators">
+            <span class="indicator active" data-slide="0"></span>
+            <span class="indicator" data-slide="1"></span>
+        </div>
+
+        <!-- Sekcja ciekawostek -->
+        <div class="trivia-section">
+            <h2>💡 Ciekawe ciekawostki</h2>
+            <div class="trivia-content" id="trivia-text">
+                Ładowanie ciekawostki...
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const overlay = document.getElementById('overlay');
+        const audio = document.getElementById('bg-music');
+        const content = document.getElementById('main-content');
+
+        overlay.addEventListener('click', () => {
+            // Próba odtworzenia dźwięku
+            audio.play().then(() => {
+                // Jeśli się uda, ukryj overlay i pokaż treść
+                overlay.style.display = 'none';
+                content.style.display = 'flex';
+            }).catch(error => {
+                console.log("Błąd odtwarzania:", error);
+                // Fallback: nawet jak audio nie pójdzie, pokaż treść
+                overlay.style.display = 'none';
+                content.style.display = 'flex';
+            });
+        });
+
+        // Video Slider
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.video-slide');
+        const indicators = document.querySelectorAll('.indicator');
+        const totalSlides = slides.length;
+
+        function showSlide(index) {
+            // Zapętlenie
+            if (index >= totalSlides) {
+                currentSlide = 0;
+            } else if (index < 0) {
+                currentSlide = totalSlides - 1;
+            } else {
+                currentSlide = index;
+            }
+            
+            // Ukryj wszystkie slajdy
+            slides.forEach(slide => slide.classList.remove('active'));
+            indicators.forEach(indicator => indicator.classList.remove('active'));
+            
+            // Pokaż aktywny slajd
+            slides[currentSlide].classList.add('active');
+            indicators[currentSlide].classList.add('active');
+            
+            // Zatrzymaj wszystkie filmy YouTube (pause)
+            const iframes = document.querySelectorAll('.video-slide iframe');
+            iframes.forEach(iframe => {
+                const src = iframe.src;
+                iframe.src = src; // Reset iframe zatrzymuje odtwarzanie
+            });
+        }
+
+        // Nawigacja strzałkami
+        document.getElementById('prev-video').addEventListener('click', () => {
+            showSlide(currentSlide - 1);
+        });
+
+        document.getElementById('next-video').addEventListener('click', () => {
+            showSlide(currentSlide + 1);
+        });
+
+        // Kliknięcie w wskaźniki
+        indicators.forEach(indicator => {
+            indicator.addEventListener('click', () => {
+                const slideIndex = parseInt(indicator.getAttribute('data-slide'));
+                showSlide(slideIndex);
+            });
+        });
+
+        // Obsługa klawiatury (strzałki)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                showSlide(currentSlide - 1);
+            } else if (e.key === 'ArrowRight') {
+                showSlide(currentSlide + 1);
+            }
+        });
+
+        // Touch/swipe na mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const SWIPE_THRESHOLD = 50;
+
+        const sliderContainer = document.querySelector('.video-slider-container');
+
+        sliderContainer.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, false);
+
+        sliderContainer.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, false);
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - SWIPE_THRESHOLD) {
+                // Swipe left
+                showSlide(currentSlide + 1);
+            }
+            if (touchEndX > touchStartX + SWIPE_THRESHOLD) {
+                // Swipe right
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        // System ciekawostek
+        let triviaList = [];
+        let currentTriviaIndex = -1;
+        let triviaTimeout;
+        
+        // Stałe czasowe
+        const BASE_DISPLAY_TIME = 8000; // 8 sekund podstawowy czas
+        const TIME_PER_WORD = 400; // 0.4 sekundy za każde słowo
+        const FADE_DURATION = 500; // 0.5 sekundy animacja fade
+
+        // Pobierz ciekawostki z pliku JSON
+        fetch('ciekawostki.json')
+            .then(response => response.json())
+            .then(data => {
+                triviaList = data;
+                showRandomTrivia(); // Pokaż pierwszą ciekawostkę
+            })
+            .catch(error => {
+                console.error('Błąd ładowania ciekawostek:', error);
+                document.getElementById('trivia-text').textContent = 
+                    'Nie udało się załadować ciekawostek 😔';
+            });
+
+        function showRandomTrivia() {
+            if (triviaList.length === 0) return;
+            
+            const triviaElement = document.getElementById('trivia-text');
+            
+            // Fade out
+            triviaElement.classList.add('fade-out');
+            
+            setTimeout(() => {
+                // Wybierz losową ciekawostkę (inną niż poprzednia)
+                let newIndex;
+                do {
+                    newIndex = Math.floor(Math.random() * triviaList.length);
+                } while (newIndex === currentTriviaIndex && triviaList.length > 1);
+                
+                currentTriviaIndex = newIndex;
+                triviaElement.textContent = triviaList[currentTriviaIndex];
+                
+                // Fade in
+                triviaElement.classList.remove('fade-out');
+                triviaElement.classList.add('fade-in');
+                
+                // Oblicz dynamiczny czas wyświetlania
+                const wordCount = triviaList[currentTriviaIndex].split(' ').length;
+                const displayTime = BASE_DISPLAY_TIME + (wordCount * TIME_PER_WORD);
+                
+                // Zaplanuj następną zmianę
+                clearTimeout(triviaTimeout);
+                triviaTimeout = setTimeout(showRandomTrivia, displayTime);
+            }, FADE_DURATION);
+        }
+    </script>
+    <script src="menu.js"></script>
+</body>
+
+
+</html>
+
+
