@@ -1046,6 +1046,12 @@
                 loadQueue(); // Reload whole queue on change
             })
             .subscribe();
+        // Generate or retrieve a persistent random nickname
+        let myNickname = localStorage.getItem('chatNickname');
+        if (!myNickname) {
+            myNickname = 'User' + Math.floor(Math.random() * 10000);
+            localStorage.setItem('chatNickname', myNickname);
+        }
 
         // Presence (Online Counter) - track by nickname
         async function updatePresence() {
@@ -1086,13 +1092,6 @@
         const chatForm = document.getElementById('chat-form');
         const chatContainer = document.getElementById('chat-messages');
         const renderedMsgIds = new Set();
-
-        // Generate or retrieve a persistent random nickname
-        let myNickname = localStorage.getItem('chatNickname');
-        if (!myNickname) {
-            myNickname = 'User' + Math.floor(Math.random() * 10000);
-            localStorage.setItem('chatNickname', myNickname);
-        }
 
         // Inline Nickname Logic
         const nicknameDisplay = document.getElementById('nickname-display');
