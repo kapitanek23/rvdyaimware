@@ -88,10 +88,7 @@
         }
 
         .online-list {
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 50%;
-            transform: translateX(-50%);
+            position: fixed;
             background: rgba(24, 24, 27, 0.95);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -101,11 +98,11 @@
             opacity: 0;
             visibility: hidden;
             transition: all 0.2s ease;
-            z-index: 100;
+            z-index: 9999;
             pointer-events: none;
         }
 
-        .online-counter:hover .online-list {
+        .online-list.visible {
             opacity: 1;
             visibility: visible;
         }
@@ -127,6 +124,7 @@
             background: #4ade80;
             border-radius: 50%;
             flex-shrink: 0;
+            display: inline-block;
         }
 
         @keyframes pulse {
@@ -649,13 +647,14 @@
         <!-- Top Bar -->
         <div class="top-bar">
             <div class="watch-header">
-                <div class="online-counter">
+                <div class="online-counter" id="online-counter">
                     <div class="dot"></div>
                     <span>Online: <strong id="online-count">0</strong></span>
-                    <div class="online-list" id="online-list"></div>
                 </div>
             </div>
         </div>
+
+        <div class="online-list" id="online-list"></div>
 
         <!-- 3 Columns Content -->
         <div class="content-area">
@@ -1096,6 +1095,20 @@
         }
         setInterval(updatePresence, PRESENCE_UPDATE_INTERVAL);
         updatePresence();
+
+        // Online list tooltip positioning
+        const counterEl = document.getElementById('online-counter');
+        const listEl = document.getElementById('online-list');
+        counterEl.addEventListener('mouseenter', () => {
+            const rect = counterEl.getBoundingClientRect();
+            listEl.style.top = (rect.bottom + 8) + 'px';
+            listEl.style.left = (rect.left + rect.width / 2) + 'px';
+            listEl.style.transform = 'translateX(-50%)';
+            listEl.classList.add('visible');
+        });
+        counterEl.addEventListener('mouseleave', () => {
+            listEl.classList.remove('visible');
+        });
 
         // Clear queue logic
         document.getElementById('clear-queue').addEventListener('click', async () => {
