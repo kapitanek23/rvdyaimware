@@ -1,33 +1,35 @@
 /* Menu Hamburger */
 .menu-toggle {
     position: fixed;
-    top: 20px;
-    left: 20px;
+    top: 18px;
+    left: 22px;
     z-index: 1000;
-    background: rgba(255, 255, 255, 0.9);
-    border: none;
-    width: 50px;
-    height: 50px;
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 42px;
+    height: 42px;
     border-radius: 10px;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 6px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    gap: 5px;
+    transition: all 0.25s ease;
 }
 
 .menu-toggle:hover {
-    background: rgba(255, 255, 255, 1);
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
     transform: scale(1.05);
 }
 
 .menu-toggle span {
-    width: 25px;
-    height: 3px;
-    background: #121212;
+    width: 20px;
+    height: 2px;
+    background: #a1a1aa;
     border-radius: 2px;
     transition: all 0.3s ease;
 }
