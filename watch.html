@@ -1079,8 +1079,7 @@
 
             // 3. Fetch & display online users
             try {
-                const { data, error: fetchErr } = await sb.from('online_users').select('*');
-                console.log('Presence data:', data, 'error:', fetchErr);
+                const { data } = await sb.from('online_users').select('*');
                 if (data && data.length > 0) {
                     const uniqueNicks = [...new Set(data.map(u => u.nickname || u.session_id || 'Anon'))];
                     document.getElementById('online-count').textContent = uniqueNicks.length;
