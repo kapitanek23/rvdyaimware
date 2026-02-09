@@ -125,7 +125,7 @@
             width: 5px;
             height: 5px;
             background: #4ade80;
-            border-radius: 50;
+            border-radius: 50%;
             flex-shrink: 0;
         }
 
@@ -1079,7 +1079,8 @@
 
             // 3. Fetch & display online users
             try {
-                const { data } = await sb.from('online_users').select('*');
+                const { data, error: fetchErr } = await sb.from('online_users').select('*');
+                console.log('Presence data:', data, 'error:', fetchErr);
                 if (data && data.length > 0) {
                     const uniqueNicks = [...new Set(data.map(u => u.nickname || u.session_id || 'Anon'))];
                     document.getElementById('online-count').textContent = uniqueNicks.length;
@@ -1089,8 +1090,8 @@
                         `<div class="online-list-item"><span class="dot-mini"></span>${nick.replace(/</g, '&lt;')}</div>`
                     ).join('');
                 } else {
-                    document.getElementById('online-count').textContent = '0';
-                    document.getElementById('online-list').innerHTML = '<div class="online-list-item" style="color:#52525b">Brak</div>';
+                    document.getElementById('online-count').textContent = '1';
+                    document.getElementById('online-list').innerHTML = `<div class="online-list-item"><span class="dot-mini"></span>${myNickname}</div>`;
                 }
             } catch (e) { console.error('Presence fetch error:', e); }
         }
