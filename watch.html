@@ -1053,38 +1053,36 @@
         }
 
         // Presence (Online Counter) - track by nickname
+        // Show self immediately while waiting for DB
+        document.getElementById('online-count').textContent = '1';
+        document.getElementById('online-list').innerHTML = `<div class="online-list-item"><span class="dot-mini"></span>${myNickname}</div>`;
+
         async function updatePresence() {
             // 1. Register this session
             try {
-                const { error } = await sb.from('online_users').upsert({
+                await sb.from('online_users').upsert({
                     session_id: sessionId,
                     nickname: myNickname,
                     last_seen: new Date().toISOString()
                 }, { onConflict: 'session_id' });
-
-                // Fallback: if nickname column doesn't exist, try without it
-                if (error) {
-                    await sb.from('online_users').upsert({
-                        session_id: sessionId,
-                        last_seen: new Date().toISOString()
-                    }, { onConflict: 'session_id' });
-                }
             } catch (e) { console.error('Presence upsert error:', e); }
 
-            // 2. Clean stale sessions
+            // 2. Clean stale sessions + sessions with no nickname
             try {
                 await sb.from('online_users').delete().lt('last_seen', new Date(Date.now() - USER_TIMEOUT_MS).toISOString());
+                await sb.from('online_users').delete().is('nickname', null);
             } catch (e) { }
 
             // 3. Fetch & display online users
             try {
                 const { data } = await sb.from('online_users').select('*');
                 if (data && data.length > 0) {
-                    const uniqueNicks = [...new Set(data.map(u => u.nickname || u.session_id || 'Anon'))];
+                    // Get real nicknames only, filter out 'Anon' placeholders
+                    const nicks = data.map(u => u.nickname).filter(n => n && n !== 'Anon');
+                    const uniqueNicks = [...new Set(nicks.length > 0 ? nicks : [myNickname])];
                     document.getElementById('online-count').textContent = uniqueNicks.length;
 
-                    const listEl = document.getElementById('online-list');
-                    listEl.innerHTML = uniqueNicks.map(nick =>
+                    document.getElementById('online-list').innerHTML = uniqueNicks.map(nick =>
                         `<div class="online-list-item"><span class="dot-mini"></span>${nick.replace(/</g, '&lt;')}</div>`
                     ).join('');
                 } else {
