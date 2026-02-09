@@ -74,6 +74,8 @@
             font-size: 0.8rem;
             color: #4ade80;
             font-weight: 600;
+            position: relative;
+            cursor: default;
         }
 
         .online-counter .dot {
@@ -83,6 +85,48 @@
             border-radius: 50%;
             box-shadow: 0 0 6px #4ade80;
             animation: pulse 2s ease-in-out infinite;
+        }
+
+        .online-list {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(24, 24, 27, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 10px 0;
+            min-width: 140px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .online-counter:hover .online-list {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .online-list-item {
+            padding: 5px 16px;
+            font-size: 0.78rem;
+            color: #d4d4d8;
+            font-weight: 500;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .online-list-item .dot-mini {
+            width: 5px;
+            height: 5px;
+            background: #4ade80;
+            border-radius: 50;
+            flex-shrink: 0;
         }
 
         @keyframes pulse {
@@ -608,6 +652,7 @@
                 <div class="online-counter">
                     <div class="dot"></div>
                     <span>Online: <strong id="online-count">0</strong></span>
+                    <div class="online-list" id="online-list"></div>
                 </div>
             </div>
         </div>
@@ -1002,14 +1047,29 @@
             })
             .subscribe();
 
-        // Presence (Online Counter)
+        // Presence (Online Counter) - track by nickname
         async function updatePresence() {
             try {
-                await sb.from('online_users').upsert({ session_id: sessionId, last_seen: new Date().toISOString() }, { onConflict: 'session_id' });
+                await sb.from('online_users').upsert({
+                    session_id: sessionId,
+                    nickname: myNickname,
+                    last_seen: new Date().toISOString()
+                }, { onConflict: 'session_id' });
                 await sb.from('online_users').delete().lt('last_seen', new Date(Date.now() - USER_TIMEOUT_MS).toISOString());
                 const { data } = await sb.from('online_users').select('*');
-                document.getElementById('online-count').textContent = data ? data.length : 0;
-            } catch (e) { }
+
+                if (data) {
+                    // Count unique nicknames
+                    const uniqueNicks = [...new Set(data.map(u => u.nickname || 'Anon'))];
+                    document.getElementById('online-count').textContent = uniqueNicks.length;
+
+                    // Build user list
+                    const listEl = document.getElementById('online-list');
+                    listEl.innerHTML = uniqueNicks.map(nick =>
+                        `<div class="online-list-item"><span class="dot-mini"></span>${nick.replace(/</g, '&lt;')}</div>`
+                    ).join('');
+                }
+            } catch (e) { console.error('Presence error:', e); }
         }
         setInterval(updatePresence, PRESENCE_UPDATE_INTERVAL);
         updatePresence();
