@@ -177,7 +177,7 @@
 
         /* === Queue Panel === */
         .queue-panel {
-            width: 300px;
+            width: 360px;
             flex-shrink: 0;
         }
 
@@ -247,6 +247,17 @@
             text-overflow: ellipsis;
             margin-bottom: 2px;
             color: #e4e4e7;
+        }
+
+        .queue-title a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .queue-title a:hover {
+            color: #60a5fa;
+            text-decoration: underline;
         }
 
         .queue-meta {
@@ -464,7 +475,7 @@
 
         /* === Chat Panel === */
         .chat-panel {
-            width: 300px;
+            width: 360px;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
@@ -852,15 +863,18 @@
                 const isPlaying = item.youtube_id === currentVideoId;
                 const thumbUrl = `https://img.youtube.com/vi/${item.youtube_id}/default.jpg`;
 
+                const safeTitle = (item.title || item.youtube_id).replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const ytLink = `https://www.youtube.com/watch?v=${item.youtube_id}`;
+
                 return `
                 <div class="queue-item ${isPlaying ? 'playing' : ''}" data-id="${item.id}">
                     <div class="queue-handle">☰</div>
                     <img src="${thumbUrl}" class="queue-thumb" alt="thumb">
                     <div class="queue-info">
-                        <div class="queue-title" title="${item.title}">
-                            ${isPlaying ? '▶ ' : ''}${index + 1}. ${item.title}
+                        <div class="queue-title" title="${safeTitle}">
+                            ${isPlaying ? '▶ ' : ''}<a href="${ytLink}" target="_blank" rel="noopener">${index + 1}. ${safeTitle}</a>
                         </div>
-                        <div class="queue-meta">Dodał: ${item.added_by || 'Anon'}</div>
+                        <div class="queue-meta">Dodał: ${(item.added_by || 'Anon').replace(/</g, '&lt;')}</div>
                     </div>
                     <div class="queue-actions">
                         <button class="queue-btn" onclick="playVideo('${item.youtube_id}')" title="Play">Play</button>
@@ -889,6 +903,18 @@
         });
 
         // Add Video
+        // Fetch real YouTube title via noembed
+        async function fetchYouTubeTitle(videoId) {
+            try {
+                const resp = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data.title) return data.title;
+                }
+            } catch (e) { console.warn('Could not fetch YT title:', e); }
+            return `Video ${videoId}`;
+        }
+
         document.getElementById('add-video-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const input = document.getElementById('youtube-url');
@@ -899,8 +925,8 @@
                 return;
             }
 
-            // Get video title (optional, using dummy for now or fetch if possible via no-cors proxy trick, skipping for simplicity)
-            const title = `Video ${videoId}`;
+            // Fetch real title from YouTube
+            const title = await fetchYouTubeTitle(videoId);
 
             try {
                 // Get max position
@@ -908,9 +934,9 @@
 
                 await sb.from('queue').insert({
                     youtube_id: videoId,
-                    title: videoId, // Tytuł tymczasowy, w idealnym świecie fetch z YT API
+                    title: title,
                     position: maxPos + 1,
-                    added_by: 'User' // Można by dodać prompt o nick
+                    added_by: myNickname || 'Anon'
                 });
 
                 input.value = '';
