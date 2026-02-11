@@ -2,11 +2,14 @@ const playersData = {
     "rvdy": {
         nick: "rvdy",
         role: "Entry Fragger",
-        image: "assets/img/rvdy.jpg", // Upewnij się, że masz folder assets/img
+        image: "assets/img/rvdy.jpg",
         stats: {
-            rating: "1.15",
-            kd: "1.12",
-            hs: "45%"
+            rating: "4.01",
+            tRating: "3.77",
+            ctRating: "4.30",
+            kd: "1.3",
+            hs: "43%",
+            winRate: "57%"
         },
         desc: "Trafia tylko jak nikt nie patrzy.",
         // Pamiętaj: Link musi być w formacie embed, nie watch!
@@ -17,9 +20,12 @@ const playersData = {
         role: "Sniper",
         image: "assets/img/legit.jpg",
         stats: {
-            rating: "1.05",
-            kd: "1.08",
-            hs: "32%"
+            rating: "4.01",
+            tRating: "3.77",
+            ctRating: "4.30",
+            kd: "1.3",
+            hs: "45%",
+            winRate: "57%"
         },
         desc: "Lubi drzeć ryja na Eco, ale strzela głowy.",
         video: "https://www.youtube.com/embed/dQw4w9WgXcQ"
@@ -29,9 +35,12 @@ const playersData = {
         role: "Rifler",
         image: "assets/img/dawidek.jpg",
         stats: {
-            rating: "0.98",
-            kd: "0.95",
-            hs: "40%"
+            rating: "4.01",
+            tRating: "3.77",
+            ctRating: "4.30",
+            kd: "1.3",
+            hs: "45%",
+            winRate: "57%"
         },
         desc: "Musi kończyć o 22:00, bo rano przyroda. Ale głowy strzela jak profesor.",
         video: "https://www.youtube.com/embed/dQw4w9WgXcQ"
@@ -41,9 +50,12 @@ const playersData = {
         role: "Support",
         image: "assets/img/saju.jpg",
         stats: {
-            rating: "1.00",
-            kd: "0.99",
-            hs: "35%"
+            rating: "4.01",
+            tRating: "3.77",
+            ctRating: "4.30",
+            kd: "1.3",
+            hs: "45%",
+            winRate: "57%"
         },
         desc: "Trafia niesamowite flickshoty, ale nie potrafi trafić w plecy stojącego przeciwnika.",
         video: "https://www.youtube.com/embed/dQw4w9WgXcQ"
@@ -53,9 +65,12 @@ const playersData = {
         role: "Lurker",
         image: "assets/img/bibi.jpg",
         stats: {
-            rating: "1.10",
-            kd: "1.05",
-            hs: "50%"
+            rating: "4.01",
+            tRating: "3.77",
+            ctRating: "4.30",
+            kd: "1.3",
+            hs: "45%",
+            winRate: "57%"
         },
         desc: "Król granatów i flashy na ryj.",
         video: "https://www.youtube.com/embed/dQw4w9WgXcQ"

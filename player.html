@@ -20,93 +20,149 @@
         </div>
         <div class="sidebar-nav">
             <a href="index.html"><span>🏠</span> Home</a>
-            <a href="player.html?id=rvdy"><span>🎬</span> rvdy</a>
-            <a href="player.html?id=legit"><span>✓</span> legit</a>
-            <a href="player.html?id=dawidek"><span>👤</span> Dawidek</a>
-            <a href="player.html?id=saju"><span>🎮</span> Saju</a>
-            <a href="player.html?id=bibi"><span>🐱</span> Bibi</a>
+
+            <a href="player.html"><span>👥</span> Drużyna</a>
+
             <a href="watch.html"><span>📺</span> Oglądanie</a>
         </div>
     </nav>
 
-    <main class="content-wrapper">
-        <div id="player-card" class="player-card">
-
-            <div class="card-body">
-
-                <div class="card-left">
-                    <div class="image-container-large">
-                        <img id="p-img" src="" alt="Player Avatar">
-                    </div>
-                </div>
-
-                <div class="card-right">
-                    <div class="header-info">
-                        <h1 id="p-nick">NICK</h1>
-                        <span id="p-role" class="badge">ROLE</span>
-                        <p id="p-desc" class="description">Opis...</p>
-                    </div>
-
-                    <div class="stats-grid">
-                        <div class="stat-box">
-                            <span class="label">RATING</span>
-                            <strong id="s-rating" class="value">0.00</strong>
-                        </div>
-                        <div class="stat-box">
-                            <span class="label">K/D</span>
-                            <strong id="s-kd" class="value">0.00</strong>
-                        </div>
-                        <div class="stat-box">
-                            <span class="label">HS %</span>
-                            <strong id="s-hs" class="value">0%</strong>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="video-section">
-                <h3>Highlights</h3>
-                <div class="video-container">
-                    <iframe id="p-video" src="" title="YouTube video player" frameborder="0" allowfullscreen></iframe>
-                </div>
-            </div>
-
-        </div>
+    <main class="team-section">
+        <h1 class="page-title">NASZ SKŁAD</h1>
+        <div id="team-grid" class="team-grid"></div>
     </main>
 
+    <div id="player-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" id="close-modal">&times;</button>
+
+            <div class="modal-body">
+
+                <div class="modal-left">
+                    <img id="m-img" src="" alt="Player Avatar">
+                </div>
+
+                <div class="modal-right">
+
+                    <div class="modal-header-group">
+                        <h2 id="m-nick">NICK</h2>
+                        <span id="m-role" class="badge">ROLA</span>
+                    </div>
+
+                    <p id="m-desc" class="modal-desc">Opis gracza...</p>
+
+                    <div class="modal-stats-wrapper">
+
+                        <div class="stats-primary">
+                            <div class="stat-box big-rating-box">
+                                <span class="stat-label">RATING</span>
+                                <strong id="m-rating" class="stat-value-big">0.00</strong>
+                            </div>
+                            <div class="rating-split">
+                                <div class="stat-box small-box t-side">
+                                    <span class="stat-label">T-SIDE</span>
+                                    <strong id="m-tRating">0.00</strong>
+                                </div>
+                                <div class="stat-box small-box ct-side">
+                                    <span class="stat-label">CT-SIDE</span>
+                                    <strong id="m-ctRating">0.00</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stats-secondary">
+                            <div class="stat-box">
+                                <span class="stat-label">K/D RATIO</span>
+                                <strong id="m-kd">0.00</strong>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">HS %</span>
+                                <strong id="m-hs">0%</strong>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">WIN RATE</span>
+                                <strong id="m-winRate" style="color: #4CAF50;">0%</strong>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="modal-video">
+                <iframe id="m-video" src="" frameborder="0" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
     <script src="js/players.js"></script>
+
     <script>
-        // 1. Pobieramy parametr ?id=... z adresu URL
-        const params = new URLSearchParams(window.location.search);
-        const playerId = params.get('id');
+        const gridContainer = document.getElementById('team-grid');
+        const modal = document.getElementById('player-modal');
+        const closeModalBtn = document.getElementById('close-modal');
 
-        // 2. Szukamy gracza w bazie
-        const player = playersData[playerId];
-
-        // 3. Sprawdzamy czy gracz istnieje
-        if (player) {
-            // Wypełniamy pola tekstowe
-            document.getElementById('p-nick').innerText = player.nick;
-            document.getElementById('p-role').innerText = player.role;
-            document.getElementById('p-desc').innerText = player.desc;
-
-            // Ustawiamy obrazek
-            document.getElementById('p-img').src = player.image;
-
-            // Ustawiamy statystyki
-            document.getElementById('s-rating').innerText = player.stats.rating;
-            document.getElementById('s-kd').innerText = player.stats.kd;
-            document.getElementById('s-hs').innerText = player.stats.hs;
-
-            // Ustawiamy wideo
-            document.getElementById('p-video').src = player.video;
+        // Sprawdzamy czy playersData w ogóle się załadowało
+        if (typeof playersData === 'undefined') {
+            console.error("Błąd: Nie znaleziono danych graczy. Sprawdź plik js/players.js");
+            gridContainer.innerHTML = "<h2>Błąd ładowania danych</h2>";
         } else {
-            // Jeśli ktoś wpisze zły link, np. ?id=kierownik
-            document.getElementById('player-card').innerHTML = "<h2>Nie znaleziono takiego zawodnika!</h2>";
+            // Generowanie kafelków
+            Object.keys(playersData).forEach(key => {
+                const player = playersData[key];
+
+                const card = document.createElement('div');
+                card.classList.add('player-card-mini');
+                card.setAttribute('data-id', key);
+
+                card.innerHTML = `
+                    <img src="${player.image}" alt="${player.nick}">
+                    <div class="mini-info">
+                        <h3>${player.nick}</h3>
+                        <span>${player.role}</span>
+                    </div>
+                `;
+
+                gridContainer.appendChild(card);
+
+                card.addEventListener('click', () => {
+                    openModal(player);
+                });
+            });
         }
 
-        // Obsługa menu (skopiuj to ze swojego głównego skryptu jeśli masz)
+        function openModal(data) {
+            document.getElementById('m-nick').innerText = data.nick;
+            document.getElementById('m-role').innerText = data.role;
+            document.getElementById('m-desc').innerText = data.desc;
+            document.getElementById('m-img').src = data.image;
+
+            document.getElementById('m-rating').innerText = data.stats.rating;
+            document.getElementById('m-tRating').innerText = data.stats.tRating || "-";
+            document.getElementById('m-ctRating').innerText = data.stats.ctRating || "-";
+
+            document.getElementById('m-kd').innerText = data.stats.kd;
+            document.getElementById('m-hs').innerText = data.stats.hs;
+            document.getElementById('m-winRate').innerText = data.stats.winRate || "0%";
+
+            document.getElementById('m-video').src = data.video;
+
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            document.getElementById('m-video').src = ""; // Stop wideo
+        }
+
+        closeModalBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "Escape" && modal.classList.contains('active')) closeModal();
+        });
+
+        // Obsługa menu bocznego
         document.getElementById('menu-toggle').addEventListener('click', function () {
             document.getElementById('sidebar').classList.toggle('active');
         });
