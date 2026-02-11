@@ -3,14 +3,14 @@
 
 <head>
     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-CYT76WJHNH"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CYT76WJHNH"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-  gtag('config', 'G-CYT76WJHNH');
-</script>
+        gtag('config', 'G-CYT76WJHNH');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CHYBA ZOSTALES ROZJEBANY</title>
@@ -159,6 +159,7 @@
                 opacity: 0;
                 transform: translateX(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateX(0);
@@ -230,7 +231,7 @@
             .video-slider {
                 gap: 10px;
             }
-            
+
             .slider-arrow {
                 width: 40px;
                 height: 40px;
@@ -244,23 +245,20 @@
 
     <!-- Menu Hamburger -->
     <button class="menu-toggle" id="menu-toggle">
-        <span></span>
-        <span></span>
-        <span></span>
+        <span></span><span></span><span></span>
     </button>
 
-    <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h2>MENU</h2>
         </div>
         <div class="sidebar-nav">
             <a href="index.html"><span>🏠</span> Home</a>
-            <a href="rvdy.html"><span>🎬</span> rvdy</a>
-            <a href="legit.html"><span>✓</span> legit</a>
-            <a href="dawidek.html"><span>👤</span> Dawidek</a>
-            <a href="saju.html"><span>🎮</span> Saju</a>
-            <a href="bibi.html"><span>🐱</span> Bibi</a>
+            <a href="player.html?id=rvdy"><span>🎬</span> rvdy</a>
+            <a href="player.html?id=legit"><span>✓</span> legit</a>
+            <a href="player.html?id=dawidek"><span>👤</span> Dawidek</a>
+            <a href="player.html?id=saju"><span>🎮</span> Saju</a>
+            <a href="player.html?id=bibi"><span>🐱</span> Bibi</a>
             <a href="watch.html"><span>📺</span> Oglądanie</a>
         </div>
     </nav>
@@ -283,28 +281,28 @@
         <!-- Slider filmów -->
         <div class="video-slider">
             <button class="slider-arrow slider-arrow-left" id="prev-video">‹</button>
-            
+
             <div class="video-slider-container">
                 <div class="video-slide active">
                     <div class="video-wrapper">
                         <iframe src="https://www.youtube.com/embed/-2K4ad4tRh4" title="YouTube video player"
-                            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
-                            loading="lazy"> </iframe>
+                            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen loading="lazy"> </iframe>
                     </div>
                 </div>
-                
+
                 <div class="video-slide">
                     <div class="video-wrapper">
-                        <iframe src="https://www.youtube.com/embed/oL1wo-KRw_0" title="YouTube video player" allowfullscreen
-                            loading="lazy">
+                        <iframe src="https://www.youtube.com/embed/oL1wo-KRw_0" title="YouTube video player"
+                            allowfullscreen loading="lazy">
                         </iframe>
                     </div>
                 </div>
             </div>
-            
+
             <button class="slider-arrow slider-arrow-right" id="next-video">›</button>
         </div>
-        
+
         <!-- Wskaźniki -->
         <div class="video-indicators" id="video-indicators">
             <span class="indicator active" data-slide="0"></span>
@@ -355,15 +353,15 @@
             } else {
                 currentSlide = index;
             }
-            
+
             // Ukryj wszystkie slajdy
             slides.forEach(slide => slide.classList.remove('active'));
             indicators.forEach(indicator => indicator.classList.remove('active'));
-            
+
             // Pokaż aktywny slajd
             slides[currentSlide].classList.add('active');
             indicators[currentSlide].classList.add('active');
-            
+
             // Zatrzymaj wszystkie filmy YouTube (pause)
             const iframes = document.querySelectorAll('.video-slide iframe');
             iframes.forEach(iframe => {
@@ -429,7 +427,7 @@
         let triviaList = [];
         let currentTriviaIndex = -1;
         let triviaTimeout;
-        
+
         // Stałe czasowe
         const BASE_DISPLAY_TIME = 8000; // 8 sekund podstawowy czas
         const TIME_PER_WORD = 400; // 0.4 sekundy za każde słowo
@@ -444,36 +442,36 @@
             })
             .catch(error => {
                 console.error('Błąd ładowania ciekawostek:', error);
-                document.getElementById('trivia-text').textContent = 
+                document.getElementById('trivia-text').textContent =
                     'Nie udało się załadować ciekawostek 😔';
             });
 
         function showRandomTrivia() {
             if (triviaList.length === 0) return;
-            
+
             const triviaElement = document.getElementById('trivia-text');
-            
+
             // Fade out
             triviaElement.classList.add('fade-out');
-            
+
             setTimeout(() => {
                 // Wybierz losową ciekawostkę (inną niż poprzednia)
                 let newIndex;
                 do {
                     newIndex = Math.floor(Math.random() * triviaList.length);
                 } while (newIndex === currentTriviaIndex && triviaList.length > 1);
-                
+
                 currentTriviaIndex = newIndex;
                 triviaElement.textContent = triviaList[currentTriviaIndex];
-                
+
                 // Fade in
                 triviaElement.classList.remove('fade-out');
                 triviaElement.classList.add('fade-in');
-                
+
                 // Oblicz dynamiczny czas wyświetlania
                 const wordCount = triviaList[currentTriviaIndex].split(' ').length;
                 const displayTime = BASE_DISPLAY_TIME + (wordCount * TIME_PER_WORD);
-                
+
                 // Zaplanuj następną zmianę
                 clearTimeout(triviaTimeout);
                 triviaTimeout = setTimeout(showRandomTrivia, displayTime);
@@ -485,5 +483,3 @@
 
 
 </html>
-
-

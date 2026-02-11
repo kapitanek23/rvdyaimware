@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Gracza - Team Profile</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <button class="menu-toggle" id="menu-toggle">
+        <span></span><span></span><span></span>
+    </button>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>MENU</h2>
+        </div>
+        <div class="sidebar-nav">
+            <a href="index.html"><span>🏠</span> Home</a>
+            <a href="player.html?id=rvdy"><span>🎬</span> rvdy</a>
+            <a href="player.html?id=legit"><span>✓</span> legit</a>
+            <a href="player.html?id=dawidek"><span>👤</span> Dawidek</a>
+            <a href="player.html?id=saju"><span>🎮</span> Saju</a>
+            <a href="player.html?id=bibi"><span>🐱</span> Bibi</a>
+            <a href="watch.html"><span>📺</span> Oglądanie</a>
+        </div>
+    </nav>
+
+    <main class="content-wrapper">
+        <div id="player-card" class="player-card">
+
+            <div class="card-body">
+
+                <div class="card-left">
+                    <div class="image-container-large">
+                        <img id="p-img" src="" alt="Player Avatar">
+                    </div>
+                </div>
+
+                <div class="card-right">
+                    <div class="header-info">
+                        <h1 id="p-nick">NICK</h1>
+                        <span id="p-role" class="badge">ROLE</span>
+                        <p id="p-desc" class="description">Opis...</p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <span class="label">RATING</span>
+                            <strong id="s-rating" class="value">0.00</strong>
+                        </div>
+                        <div class="stat-box">
+                            <span class="label">K/D</span>
+                            <strong id="s-kd" class="value">0.00</strong>
+                        </div>
+                        <div class="stat-box">
+                            <span class="label">HS %</span>
+                            <strong id="s-hs" class="value">0%</strong>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="video-section">
+                <h3>Highlights</h3>
+                <div class="video-container">
+                    <iframe id="p-video" src="" title="YouTube video player" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="js/players.js"></script>
+    <script>
+        // 1. Pobieramy parametr ?id=... z adresu URL
+        const params = new URLSearchParams(window.location.search);
+        const playerId = params.get('id');
+
+        // 2. Szukamy gracza w bazie
+        const player = playersData[playerId];
+
+        // 3. Sprawdzamy czy gracz istnieje
+        if (player) {
+            // Wypełniamy pola tekstowe
+            document.getElementById('p-nick').innerText = player.nick;
+            document.getElementById('p-role').innerText = player.role;
+            document.getElementById('p-desc').innerText = player.desc;
+
+            // Ustawiamy obrazek
+            document.getElementById('p-img').src = player.image;
+
+            // Ustawiamy statystyki
+            document.getElementById('s-rating').innerText = player.stats.rating;
+            document.getElementById('s-kd').innerText = player.stats.kd;
+            document.getElementById('s-hs').innerText = player.stats.hs;
+
+            // Ustawiamy wideo
+            document.getElementById('p-video').src = player.video;
+        } else {
+            // Jeśli ktoś wpisze zły link, np. ?id=kierownik
+            document.getElementById('player-card').innerHTML = "<h2>Nie znaleziono takiego zawodnika!</h2>";
+        }
+
+        // Obsługa menu (skopiuj to ze swojego głównego skryptu jeśli masz)
+        document.getElementById('menu-toggle').addEventListener('click', function () {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+    </script>
+</body>
+
+</html>

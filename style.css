@@ -1,0 +1,430 @@
+/* =========================================
+   1. STYLE BAZOWE (Z Twojego kodu)
+   ========================================= */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #121212;
+    color: #ffffff;
+    font-family: 'Arial', sans-serif;
+    /* Sugeruję zmienić na 'Roboto' lub 'Montserrat' w przyszłości */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* =========================================
+   2. SIDEBAR & MENU (Niezbędne do nawigacji)
+   ========================================= */
+.menu-toggle {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid #333;
+    color: white;
+    padding: 10px;
+    z-index: 1000;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.menu-toggle span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background: white;
+    margin: 5px 0;
+}
+
+.sidebar {
+    position: fixed;
+    left: -250px;
+    top: 0;
+    width: 250px;
+    height: 100%;
+    background: #1a1a1a;
+    transition: 0.3s;
+    z-index: 999;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+    padding-top: 60px;
+}
+
+.sidebar.active {
+    left: 0;
+}
+
+.sidebar-nav a {
+    display: block;
+    padding: 15px 20px;
+    color: #e0e0e0;
+    text-decoration: none;
+    font-size: 1.1rem;
+    border-bottom: 1px solid #333;
+    transition: 0.2s;
+}
+
+.sidebar-nav a:hover {
+    background: #333;
+    color: #fff;
+    padding-left: 25px;
+    /* Efekt przesunięcia przy hoverze */
+}
+
+/* =========================================
+   3. PLAYER PROFILE (Nowy styl karty)
+   ========================================= */
+
+/* Główny kontener centrujący */
+.content-wrapper {
+    width: 100%;
+    max-width: 900px;
+    /* Nie za szeroko na PC */
+    margin: 80px auto 40px auto;
+    /* Odstęp od góry (menu) */
+    padding: 0 20px;
+    box-sizing: border-box;
+    animation: slideUp 0.6s ease-out;
+    /* Animacja wejścia */
+}
+
+/* Wygląd samej karty */
+.player-card {
+    background: linear-gradient(135deg, #1e1e1e 0%, #252525 100%);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+    /* Głęboki cień */
+    border: 1px solid #333;
+}
+
+/* Górna sekcja: Zdjęcie + Tekst */
+/* =========================================
+   NOWY UKŁAD KARTY (Left: Img, Right: Info)
+   ========================================= */
+
+.player-card {
+    background: linear-gradient(135deg, #1e1e1e 0%, #252525 100%);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+    border: 1px solid #333;
+    max-width: 1000px;
+    /* Nieco szersza karta */
+    margin: 0 auto;
+}
+
+/* Kontener dzielący na kolumny */
+.card-body {
+    display: flex;
+    gap: 40px;
+    /* Odstęp między zdjęciem a tekstem */
+    align-items: flex-start;
+    /* Wyrównanie do góry */
+    margin-bottom: 40px;
+}
+
+/* --- LEWA STRONA (ZDJĘCIE) --- */
+.card-left {
+    flex-shrink: 0;
+    /* Zdjęcie nie może się skurczyć */
+    width: 350px;
+    /* Stała szerokość zdjęcia */
+}
+
+.image-container-large {
+    width: 100%;
+    height: 500px;
+    /* WYSOKIE zdjęcie (pionowe) */
+    border-radius: 15px;
+    overflow: hidden;
+    border: 3px solid #444;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+    background-color: #151515;
+    /* Tło jeśli zdjęcie jest węższe */
+}
+
+.image-container-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Wypełnia całą ramkę */
+    object-position: top center;
+    /* WAŻNE: Zawsze pokazuje głowę, ucina dół */
+    transition: transform 0.5s ease;
+}
+
+.image-container-large:hover img {
+    transform: scale(1.05);
+}
+
+/* --- PRAWA STRONA (INFO + STATYSTYKI) --- */
+.card-right {
+    flex-grow: 1;
+    /* Zajmuje resztę miejsca */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.header-info h1 {
+    font-size: 4rem;
+    /* Większy nick */
+    margin: 0 0 10px 0;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.5);
+    line-height: 1;
+}
+
+.badge {
+    display: inline-block;
+    background: rgba(76, 175, 80, 0.15);
+    color: #4CAF50;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    border: 1px solid rgba(76, 175, 80, 0.4);
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+}
+
+.description {
+    color: #ccc;
+    font-size: 1.1rem;
+    font-style: italic;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    border-left: 3px solid #444;
+    padding-left: 15px;
+}
+
+/* Statystyki w prawej kolumnie */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.stat-box {
+    background: #121212;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #333;
+}
+
+.stat-box .value {
+    font-size: 2rem;
+}
+
+/* --- RESPONSYWNOŚĆ (TELEFON) --- */
+@media (max-width: 900px) {
+    .card-body {
+        flex-direction: column;
+        /* Jeden pod drugim */
+        align-items: center;
+    }
+
+    .card-left {
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .image-container-large {
+        height: 400px;
+        /* Trochę niższe na telefonie */
+    }
+
+    .card-right {
+        width: 100%;
+        text-align: center;
+    }
+
+    .description {
+        border-left: none;
+        padding-left: 0;
+    }
+}
+
+.image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Wypełnia całą ramkę */
+    object-position: top center;
+    /* ZAWSZE pokazuje górę zdjęcia (głowę) */
+    transition: transform 0.3s ease;
+}
+
+.image-container:hover img {
+    transform: scale(1.1);
+    /* Zoom po najechaniu */
+}
+
+/* Teksty w nagłówku */
+.header-info h1 {
+    font-size: 3rem;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+}
+
+.header-info h3 {
+    margin: 5px 0 15px 0;
+    color: #aaa;
+    font-weight: 400;
+}
+
+/* Odznaka Roli */
+.badge {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.1);
+    color: #4CAF50;
+    /* Zielony akcent a'la CS2 */
+    padding: 5px 15px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    margin-bottom: 15px;
+}
+
+.description {
+    color: #ccc;
+    font-style: italic;
+    line-height: 1.6;
+    max-width: 500px;
+}
+
+/* =========================================
+   4. STATYSTYKI (Siatka 3 kolumnowa)
+   ========================================= */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.stat-box {
+    background: #121212;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid #333;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.stat-box:hover {
+    transform: translateY(-5px);
+    border-color: #555;
+    background: #181818;
+}
+
+.stat-box .label {
+    display: block;
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 5px;
+    letter-spacing: 1px;
+}
+
+.stat-box .value {
+    display: block;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+/* Kolorowanie statystyk (opcjonalne) */
+#s-rating {
+    color: #f1c40f;
+}
+
+/* Złoty */
+#s-kd {
+    color: #3498db;
+}
+
+/* Niebieski */
+#s-hs {
+    color: #e74c3c;
+}
+
+/* Czerwony */
+
+/* =========================================
+   5. VIDEO HIGHLIGHTS
+   ========================================= */
+.video-section h3 {
+    border-left: 5px solid #fff;
+    padding-left: 15px;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    /* 16:9 Aspect Ratio */
+    height: 0;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+    background: #000;
+}
+
+.video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* =========================================
+   6. RESPONSYWNOŚĆ (Mobile)
+   ========================================= */
+@media (max-width: 768px) {
+    .card-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .description {
+        margin: 0 auto;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+        /* Jeden pod drugim na telefonie */
+    }
+
+    .header-info h1 {
+        font-size: 2.2rem;
+    }
+
+    .content-wrapper {
+        margin-top: 60px;
+        padding: 0 10px;
+    }
+}
+
+/* Animacja wejścia */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
