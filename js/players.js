@@ -1,7 +1,7 @@
 const playersData = {
     "rvdy": {
         nick: "rvdy",
-        role: "Entry Fragger",
+        role: "Taktyk",
         image: "assets/img/rvdy.jpg",
         stats: {
             rating: "4.01",
@@ -17,7 +17,7 @@ const playersData = {
     },
     "legit": {
         nick: "legit",
-        role: "Sniper",
+        role: "Faker",
         image: "assets/img/legit.jpg",
         stats: {
             rating: "4.01",
@@ -47,7 +47,7 @@ const playersData = {
     },
     "saju": {
         nick: "Saju",
-        role: "Support",
+        role: "W łeb w łeb",
         image: "assets/img/saju.jpg",
         stats: {
             rating: "4.01",
@@ -62,7 +62,7 @@ const playersData = {
     },
     "bibi": {
         nick: "bibi",
-        role: "Lurker",
+        role: "Wieżyczka",
         image: "assets/img/bibi.jpg",
         stats: {
             rating: "4.01",
