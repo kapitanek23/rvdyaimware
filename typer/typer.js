@@ -479,7 +479,7 @@
                                 data-field="${market.field}"
                                 data-value="${option.value}"
                                 title="${escapeHtml(option.title || option.label)}"
-                                ${state.session && !locked ? '' : 'disabled'}>
+                                ${locked ? 'disabled' : ''}>
                                 ${escapeHtml(option.label)}
                             </button>
                         `;

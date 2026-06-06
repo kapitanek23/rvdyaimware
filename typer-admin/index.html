@@ -25,7 +25,6 @@
             <a href="../player.html"><span>👥</span> Drużyna</a>
             <a href="../watch.html"><span>📺</span> Oglądanie</a>
             <a href="/typer/"><span>🏆</span> Typer</a>
-            <a href="/typer-admin/"><span>🛠️</span> Typer Admin</a>
         </div>
     </nav>
 
@@ -53,6 +52,8 @@
             </form>
         </section>
 
+        <div class="message-bar hidden" id="admin-message"></div>
+
         <section class="admin-layout hidden" id="admin-layout">
             <aside class="admin-list-panel">
                 <div class="panel-heading">
@@ -72,7 +73,6 @@
                     <button class="ghost-button" id="admin-logout" type="button">Wyloguj</button>
                 </div>
 
-                <div class="message-bar hidden" id="admin-message"></div>
                 <div class="empty-state" id="editor-empty">Wybierz mecz z listy, żeby wpisać wynik i statystyki.</div>
 
                 <form class="admin-form hidden" id="admin-result-form">
