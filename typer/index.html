@@ -35,7 +35,10 @@
                 <p class="eyebrow">Mistrzostwa świata 2026</p>
                 <h1>Typer meczowy</h1>
             </div>
-            <div class="session-pill" id="session-pill">Niezalogowany</div>
+            <div class="header-actions">
+                <div class="session-pill" id="session-pill">Niezalogowany</div>
+                <button class="info-button" id="info-button" type="button" aria-haspopup="dialog">Informacje</button>
+            </div>
         </header>
 
         <section class="typer-layout">
@@ -118,6 +121,39 @@
             </section>
         </section>
     </main>
+
+    <div class="info-modal hidden" id="info-modal" role="dialog" aria-modal="true" aria-labelledby="info-title">
+        <div class="info-modal-content">
+            <div class="panel-heading">
+                <h2 id="info-title">Informacje o zakładach</h2>
+                <button class="ghost-button" id="close-info" type="button">Zamknij</button>
+            </div>
+
+            <div class="info-sections">
+                <section>
+                    <h3>Punktacja</h3>
+                    <p>Rezultat meczu 1/X/2 daje 3 punkty. Każde pozostałe zdarzenie daje 1 punkt.</p>
+                </section>
+
+                <section>
+                    <h3>Rozstrzyganie</h3>
+                    <p>Over/under dotyczy sumy w meczu: bramki 2,5, rzuty rożne 8,5 i kartki 3,5. Over oznacza wynik powyżej linii, under poniżej linii.</p>
+                    <p>Więcej fauli, celnych strzałów i posiadania piłki rozstrzyga się między drużyną 1 i 2. Jeśli w danej statystyce jest remis, każdy gracz z zapisanym typem dostaje 1 punkt.</p>
+                    <p>Obie strzelą jest rozliczane jako Tak, jeśli obie drużyny zdobędą minimum jedną bramkę.</p>
+                </section>
+
+                <section>
+                    <h3>Blokada typów</h3>
+                    <p>Typowanie danego meczu zamyka się automatycznie 5 minut przed jego rozpoczęciem. Admin może też zablokować mecz ręcznie.</p>
+                </section>
+
+                <section>
+                    <h3>Źródło statystyk</h3>
+                    <p>Statystyki będą brane z danych Opta. Jeśli nie będzie takiej możliwości, użyjemy danych z Flashscore.</p>
+                </section>
+            </div>
+        </div>
+    </div>
 
     <script src="../menu.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

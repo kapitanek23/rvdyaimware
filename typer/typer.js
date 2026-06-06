@@ -98,8 +98,11 @@
             authForm: document.getElementById('auth-form'),
             authSubmit: document.getElementById('auth-submit'),
             authTabs: document.querySelectorAll('[data-auth-mode]'),
+            closeInfo: document.getElementById('close-info'),
             currentNick: document.getElementById('current-nick'),
             groupFilter: document.getElementById('group-filter'),
+            infoButton: document.getElementById('info-button'),
+            infoModal: document.getElementById('info-modal'),
             logoutButton: document.getElementById('logout-button'),
             matchesCount: document.getElementById('matches-count'),
             matchesList: document.getElementById('matches-list'),
@@ -148,6 +151,18 @@
         });
         elements.logoutButton.addEventListener('click', logout);
         elements.refreshRanking.addEventListener('click', loadRanking);
+        elements.infoButton.addEventListener('click', openInfoModal);
+        elements.closeInfo.addEventListener('click', closeInfoModal);
+        elements.infoModal.addEventListener('click', function (event) {
+            if (event.target === elements.infoModal) {
+                closeInfoModal();
+            }
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && !elements.infoModal.classList.contains('hidden')) {
+                closeInfoModal();
+            }
+        });
 
         elements.searchInput.addEventListener('input', function () {
             state.filters.search = elements.searchInput.value.trim().toLowerCase();
@@ -185,6 +200,14 @@
                 toggleMatch(Number(matchCard.dataset.matchId));
             }
         });
+    }
+
+    function openInfoModal() {
+        elements.infoModal.classList.remove('hidden');
+    }
+
+    function closeInfoModal() {
+        elements.infoModal.classList.add('hidden');
     }
 
     async function loadData() {

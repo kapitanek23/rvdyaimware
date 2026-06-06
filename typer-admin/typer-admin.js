@@ -480,7 +480,8 @@
     }
 
     function more(home, away) {
-        if (home === null || away === null || home === away) return '-';
+        if (home === null || away === null) return '-';
+        if (home === away) return 'Remis — każdy typ +1';
         return home > away ? '1' : '2';
     }
 
