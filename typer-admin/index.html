@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typer Admin - rvdyaimware</title>
+    <link rel="stylesheet" href="../menu.css">
+    <link rel="stylesheet" href="../typer/typer.css">
+    <link rel="stylesheet" href="typer-admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+    </button>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>MENU</h2>
+        </div>
+        <div class="sidebar-nav">
+            <a href="../index.html"><span>🏠</span> Home</a>
+            <a href="../player.html"><span>👥</span> Drużyna</a>
+            <a href="../watch.html"><span>📺</span> Oglądanie</a>
+            <a href="/typer/"><span>🏆</span> Typer</a>
+            <a href="/typer-admin/"><span>🛠️</span> Typer Admin</a>
+        </div>
+    </nav>
+
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <main class="typer-shell admin-shell">
+        <header class="typer-top">
+            <div>
+                <p class="eyebrow">Panel administracyjny</p>
+                <h1>Typer Admin</h1>
+            </div>
+            <div class="session-pill" id="admin-session-pill">Niezalogowany</div>
+        </header>
+
+        <section class="admin-login-panel" id="admin-login-panel">
+            <div class="panel-heading">
+                <h2>Logowanie admina</h2>
+            </div>
+            <form class="auth-form" id="admin-login-form">
+                <label>
+                    Hasło admina
+                    <input id="admin-password" type="password" autocomplete="current-password" minlength="8" required>
+                </label>
+                <button class="primary-button" id="admin-login-submit" type="submit">Zaloguj</button>
+            </form>
+        </section>
+
+        <section class="admin-layout hidden" id="admin-layout">
+            <aside class="admin-list-panel">
+                <div class="panel-heading">
+                    <h2>Mecze</h2>
+                    <button class="ghost-button" id="admin-refresh" type="button">Odśwież</button>
+                </div>
+                <label>
+                    Szukaj
+                    <input id="admin-search" type="search" placeholder="Drużyna, mecz, miasto">
+                </label>
+                <div class="admin-match-list" id="admin-match-list"></div>
+            </aside>
+
+            <section class="admin-editor-panel">
+                <div class="panel-heading">
+                    <h2 id="editor-title">Wybierz mecz</h2>
+                    <button class="ghost-button" id="admin-logout" type="button">Wyloguj</button>
+                </div>
+
+                <div class="message-bar hidden" id="admin-message"></div>
+                <div class="empty-state" id="editor-empty">Wybierz mecz z listy, żeby wpisać wynik i statystyki.</div>
+
+                <form class="admin-form hidden" id="admin-result-form">
+                    <div class="admin-match-summary" id="admin-match-summary"></div>
+
+                    <section class="admin-section">
+                        <h3>Blokada typowania</h3>
+                        <label class="check-row">
+                            <input id="manual-lock" type="checkbox">
+                            Ręcznie zablokuj typowanie
+                        </label>
+                        <label>
+                            Powód blokady
+                            <input id="lock-reason" type="text" placeholder="Opcjonalnie">
+                        </label>
+                        <button class="ghost-button" id="save-lock" type="button">Zapisz blokadę</button>
+                    </section>
+
+                    <section class="admin-section">
+                        <h3>Wynik</h3>
+                        <div class="admin-grid two-cols">
+                            <label>
+                                Bramki 1
+                                <input name="home_goals" type="number" min="0" required>
+                            </label>
+                            <label>
+                                Bramki 2
+                                <input name="away_goals" type="number" min="0" required>
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="admin-section">
+                        <h3>Statystyki</h3>
+                        <div class="admin-grid">
+                            <label>
+                                Rożne 1
+                                <input name="home_corners" type="number" min="0">
+                            </label>
+                            <label>
+                                Rożne 2
+                                <input name="away_corners" type="number" min="0">
+                            </label>
+                            <label>
+                                Kartki 1
+                                <input name="home_cards" type="number" min="0">
+                            </label>
+                            <label>
+                                Kartki 2
+                                <input name="away_cards" type="number" min="0">
+                            </label>
+                            <label>
+                                Faule 1
+                                <input name="home_fouls" type="number" min="0">
+                            </label>
+                            <label>
+                                Faule 2
+                                <input name="away_fouls" type="number" min="0">
+                            </label>
+                            <label>
+                                Celne 1
+                                <input name="home_shots_on_target" type="number" min="0">
+                            </label>
+                            <label>
+                                Celne 2
+                                <input name="away_shots_on_target" type="number" min="0">
+                            </label>
+                            <label>
+                                Posiadanie 1
+                                <input name="home_possession" type="number" min="0" max="100" step="0.1">
+                            </label>
+                            <label>
+                                Posiadanie 2
+                                <input name="away_possession" type="number" min="0" max="100" step="0.1">
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="admin-section">
+                        <h3>Rozliczenie</h3>
+                        <div class="settlement-grid" id="settlement-grid"></div>
+                    </section>
+
+                    <button class="primary-button" id="save-result" type="submit">Zapisz wynik i przelicz ranking</button>
+                </form>
+            </section>
+        </section>
+    </main>
+
+    <script src="../menu.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="typer-admin.js"></script>
+</body>
+
+</html>

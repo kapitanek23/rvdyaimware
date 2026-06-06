@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typer MŚ 2026 - rvdyaimware</title>
+    <link rel="stylesheet" href="../menu.css">
+    <link rel="stylesheet" href="typer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+    </button>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>MENU</h2>
+        </div>
+        <div class="sidebar-nav">
+            <a href="../index.html"><span>🏠</span> Home</a>
+            <a href="../player.html"><span>👥</span> Drużyna</a>
+            <a href="../watch.html"><span>📺</span> Oglądanie</a>
+            <a href="/typer/"><span>🏆</span> Typer</a>
+            <a href="/typer-admin/"><span>🛠️</span> Typer Admin</a>
+        </div>
+    </nav>
+
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <main class="typer-shell">
+        <header class="typer-top">
+            <div>
+                <p class="eyebrow">Mistrzostwa świata 2026</p>
+                <h1>Typer meczowy</h1>
+            </div>
+            <div class="session-pill" id="session-pill">Niezalogowany</div>
+        </header>
+
+        <section class="typer-layout">
+            <aside class="side-panel">
+                <section class="auth-panel" id="auth-panel">
+                    <div class="panel-heading">
+                        <h2>Konto gracza</h2>
+                        <button class="ghost-button hidden" id="logout-button" type="button">Wyloguj</button>
+                    </div>
+
+                    <div class="user-card hidden" id="user-card">
+                        <span>Zalogowano jako</span>
+                        <strong id="current-nick"></strong>
+                    </div>
+
+                    <form class="auth-form" id="auth-form">
+                        <div class="auth-switch" role="tablist" aria-label="Tryb logowania">
+                            <button class="auth-tab active" type="button" data-auth-mode="login">Logowanie</button>
+                            <button class="auth-tab" type="button" data-auth-mode="register">Rejestracja</button>
+                        </div>
+                        <label>
+                            Nick
+                            <input id="nick-input" name="nick" autocomplete="username" minlength="3" maxlength="24" required>
+                        </label>
+                        <label>
+                            Hasło
+                            <input id="password-input" name="password" type="password" autocomplete="current-password" minlength="4" required>
+                        </label>
+                        <button class="primary-button" id="auth-submit" type="submit">Zaloguj</button>
+                    </form>
+                </section>
+
+                <section class="ranking-panel">
+                    <div class="panel-heading">
+                        <h2>Ranking</h2>
+                        <button class="ghost-button" id="refresh-ranking" type="button">Odśwież</button>
+                    </div>
+                    <div class="ranking-list" id="ranking-list">
+                        <div class="empty-state">Ładowanie rankingu...</div>
+                    </div>
+                </section>
+            </aside>
+
+            <section class="matches-panel">
+                <div class="filters-bar">
+                    <label class="search-box">
+                        Szukaj
+                        <input id="search-input" type="search" placeholder="Drużyna, miasto, stadion">
+                    </label>
+                    <label>
+                        Etap
+                        <select id="stage-filter">
+                            <option value="all">Wszystkie</option>
+                        </select>
+                    </label>
+                    <label>
+                        Grupa
+                        <select id="group-filter">
+                            <option value="all">Wszystkie</option>
+                        </select>
+                    </label>
+                    <label>
+                        Widok
+                        <select id="saved-filter">
+                            <option value="all">Wszystkie mecze</option>
+                            <option value="saved">Zapisane typy</option>
+                            <option value="empty">Bez typu</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="summary-strip">
+                    <div><strong id="matches-count">0</strong><span>mecze</span></div>
+                    <div><strong>8</strong><span>zdarzeń</span></div>
+                    <div><strong>10</strong><span>pkt za komplet</span></div>
+                </div>
+
+                <div class="message-bar hidden" id="message-bar"></div>
+                <div class="matches-list" id="matches-list"></div>
+            </section>
+        </section>
+    </main>
+
+    <script src="../menu.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="typer.js"></script>
+</body>
+
+</html>
