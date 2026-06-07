@@ -693,6 +693,18 @@
         }
 
         const sessionData = Array.isArray(response.data) ? response.data[0] : response.data;
+        if (state.authMode === 'register') {
+            elements.passwordInput.value = '';
+            showMessage('Rejestracja wysłana. Konto będzie aktywne po zatwierdzeniu przez administratora.', 'success');
+            setAuthMode('login');
+            return;
+        }
+
+        if (!sessionData || !sessionData.session_token) {
+            showMessage('Nie udało się utworzyć sesji. Spróbuj zalogować się ponownie.', 'error');
+            return;
+        }
+
         state.session = {
             playerId: sessionData.player_id,
             nick: sessionData.nick,
@@ -700,7 +712,7 @@
         };
         localStorage.setItem(SESSION_KEY, JSON.stringify(state.session));
         elements.passwordInput.value = '';
-        showMessage(state.authMode === 'register' ? 'Konto utworzone.' : 'Zalogowano.', 'success');
+        showMessage('Zalogowano.', 'success');
         updateAuthView();
         await loadPredictions();
         await loadRanking();

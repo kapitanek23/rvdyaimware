@@ -55,17 +55,32 @@
         <div class="message-bar hidden" id="admin-message"></div>
 
         <section class="admin-layout hidden" id="admin-layout">
-            <aside class="admin-list-panel">
-                <div class="panel-heading">
-                    <h2>Mecze</h2>
-                    <button class="ghost-button" id="admin-refresh" type="button">Odśwież</button>
-                </div>
-                <label>
-                    Szukaj
-                    <input id="admin-search" type="search" placeholder="Drużyna, mecz, miasto">
-                </label>
-                <div class="admin-match-list" id="admin-match-list"></div>
-            </aside>
+            <div class="admin-side-stack">
+                <aside class="admin-players-panel">
+                    <div class="panel-heading">
+                        <div>
+                            <h2>Konta</h2>
+                            <p class="admin-panel-note">Zatwierdź ręcznie nowe rejestracje.</p>
+                        </div>
+                        <span class="status-chip" id="pending-count">0 oczekuje</span>
+                    </div>
+                    <div class="pending-players-list" id="pending-players-list">
+                        <div class="empty-state">Brak kont oczekujących.</div>
+                    </div>
+                </aside>
+
+                <aside class="admin-list-panel">
+                    <div class="panel-heading">
+                        <h2>Mecze</h2>
+                        <button class="ghost-button" id="admin-refresh" type="button">Odśwież</button>
+                    </div>
+                    <label>
+                        Szukaj
+                        <input id="admin-search" type="search" placeholder="Drużyna, mecz, miasto">
+                    </label>
+                    <div class="admin-match-list" id="admin-match-list"></div>
+                </aside>
+            </div>
 
             <section class="admin-editor-panel">
                 <div class="panel-heading">

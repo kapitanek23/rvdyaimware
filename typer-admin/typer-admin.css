@@ -3,6 +3,7 @@
 }
 
 .admin-login-panel,
+.admin-players-panel,
 .admin-list-panel,
 .admin-editor-panel {
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -23,12 +24,79 @@
     align-items: start;
 }
 
-.admin-list-panel {
+.admin-side-stack {
     display: grid;
     gap: 14px;
     max-height: calc(100vh - 120px);
     position: sticky;
     top: 12px;
+}
+
+.admin-list-panel {
+    display: grid;
+    gap: 14px;
+    min-height: 0;
+}
+
+.admin-panel-note {
+    margin: 4px 0 0;
+    color: #8c98a6;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.pending-players-list {
+    display: grid;
+    gap: 8px;
+    max-height: 230px;
+    overflow: auto;
+    padding-right: 4px;
+}
+
+.pending-player-row {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    background: #0f1319;
+}
+
+.pending-player-main {
+    display: grid;
+    gap: 2px;
+}
+
+.pending-player-main strong {
+    color: #e8eef5;
+}
+
+.pending-player-main span {
+    color: #8c98a6;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.pending-player-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.danger-button {
+    min-height: 36px;
+    padding: 0 14px;
+    border: 1px solid rgba(248, 113, 113, 0.35);
+    border-radius: 8px;
+    background: rgba(127, 29, 29, 0.18);
+    color: #fecaca;
+    cursor: pointer;
+    font-weight: 900;
+}
+
+.danger-button:hover {
+    border-color: rgba(248, 113, 113, 0.65);
+    background: rgba(127, 29, 29, 0.35);
 }
 
 .admin-match-list {
@@ -191,7 +259,7 @@
         grid-template-columns: 1fr;
     }
 
-    .admin-list-panel {
+    .admin-side-stack {
         max-height: none;
         position: static;
     }

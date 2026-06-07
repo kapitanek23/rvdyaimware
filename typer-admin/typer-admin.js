@@ -14,6 +14,7 @@
         sessionToken: null,
         matches: [],
         adminRows: new Map(),
+        pendingPlayers: [],
         selectedMatchId: null,
         search: '',
     };
@@ -37,6 +38,8 @@
             manualLock: document.getElementById('manual-lock'),
             message: document.getElementById('admin-message'),
             password: document.getElementById('admin-password'),
+            pendingCount: document.getElementById('pending-count'),
+            pendingPlayersList: document.getElementById('pending-players-list'),
             refresh: document.getElementById('admin-refresh'),
             saveLock: document.getElementById('save-lock'),
             search: document.getElementById('admin-search'),
@@ -62,15 +65,16 @@
         }
 
         if (state.sessionToken) {
-            await loadAdminMatches();
+            await loadAdminDashboard();
         }
     }
 
     function bindEvents() {
         elements.loginForm.addEventListener('submit', login);
         elements.logout.addEventListener('click', logout);
-        elements.refresh.addEventListener('click', loadAdminMatches);
+        elements.refresh.addEventListener('click', loadAdminDashboard);
         elements.saveLock.addEventListener('click', saveLock);
+        elements.pendingPlayersList.addEventListener('click', handlePendingPlayerAction);
         elements.search.addEventListener('input', function () {
             state.search = elements.search.value.trim().toLowerCase();
             renderList();
@@ -214,6 +218,10 @@
         return new Date(value.replace(' ', 'T').replace(/([+-]\d{2})$/, '$1:00'));
     }
 
+    function parseSupabaseDate(value) {
+        return value ? new Date(value) : null;
+    }
+
     async function login(event) {
         event.preventDefault();
 
@@ -242,7 +250,7 @@
         localStorage.setItem(ADMIN_SESSION_KEY, state.sessionToken);
         elements.password.value = '';
         updateAuthView();
-        await loadAdminMatches();
+        await loadAdminDashboard();
     }
 
     function restoreSession() {
@@ -253,9 +261,11 @@
         state.sessionToken = null;
         state.selectedMatchId = null;
         state.adminRows.clear();
+        state.pendingPlayers = [];
         localStorage.removeItem(ADMIN_SESSION_KEY);
         updateAuthView();
         renderList();
+        renderPendingPlayers();
         renderEditor();
     }
 
@@ -265,6 +275,11 @@
         elements.adminLayout.classList.toggle('hidden', !loggedIn);
         elements.sessionPill.textContent = loggedIn ? 'Admin' : 'Niezalogowany';
         elements.sessionPill.classList.toggle('active', loggedIn);
+    }
+
+    async function loadAdminDashboard() {
+        await loadAdminMatches();
+        await loadPendingPlayers();
     }
 
     async function loadAdminMatches() {
@@ -289,6 +304,84 @@
 
         renderList();
         renderEditor();
+    }
+
+    async function loadPendingPlayers() {
+        if (!state.sessionToken || !sb) {
+            return;
+        }
+
+        const response = await sb.rpc('typer_admin_get_pending_players', {
+            p_session_token: state.sessionToken,
+        });
+
+        if (response.error) {
+            state.pendingPlayers = [];
+            renderPendingPlayers('Lista kont czeka na aktualizację bazy.');
+            console.warn('Typer pending players unavailable:', response.error.message);
+            return;
+        }
+
+        state.pendingPlayers = response.data || [];
+        renderPendingPlayers();
+    }
+
+    function renderPendingPlayers(message) {
+        const count = state.pendingPlayers.length;
+        elements.pendingCount.textContent = count === 1 ? '1 oczekuje' : `${count} oczekuje`;
+
+        if (message) {
+            elements.pendingPlayersList.innerHTML = `<div class="empty-state">${escapeHtml(message)}</div>`;
+            return;
+        }
+
+        if (count === 0) {
+            elements.pendingPlayersList.innerHTML = '<div class="empty-state">Brak kont oczekujących.</div>';
+            return;
+        }
+
+        elements.pendingPlayersList.innerHTML = state.pendingPlayers.map(function (player) {
+            return `
+                <div class="pending-player-row">
+                    <div class="pending-player-main">
+                        <strong>${escapeHtml(player.nick)}</strong>
+                        <span>${formatDate(parseSupabaseDate(player.created_at))}</span>
+                    </div>
+                    <div class="pending-player-actions">
+                        <button class="primary-button" type="button" data-player-action="approve" data-player-id="${escapeHtml(player.player_id)}">Zatwierdź</button>
+                        <button class="danger-button" type="button" data-player-action="reject" data-player-id="${escapeHtml(player.player_id)}">Odrzuć</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    async function handlePendingPlayerAction(event) {
+        const button = event.target.closest('[data-player-action]');
+        if (!button || !state.sessionToken || !sb) {
+            return;
+        }
+
+        const action = button.dataset.playerAction;
+        const playerId = button.dataset.playerId;
+        const rpcName = action === 'approve' ? 'typer_admin_approve_player' : 'typer_admin_reject_player';
+
+        button.disabled = true;
+        button.textContent = action === 'approve' ? 'Zatwierdzam...' : 'Odrzucam...';
+
+        const response = await sb.rpc(rpcName, {
+            p_session_token: state.sessionToken,
+            p_player_id: playerId,
+        });
+
+        if (response.error) {
+            showMessage(response.error.message, 'error');
+            await loadPendingPlayers();
+            return;
+        }
+
+        showMessage(action === 'approve' ? 'Konto zatwierdzone. Gracz może się zalogować.' : 'Rejestracja odrzucona.', 'success');
+        await loadPendingPlayers();
     }
 
     function renderList() {
