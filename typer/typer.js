@@ -72,11 +72,14 @@
         },
     ];
 
+    const TIE_AWARDS_ALL_FIELDS = new Set(['fouls_more', 'shots_more', 'possession_more']);
+
     const state = {
         authMode: 'login',
         session: null,
         matches: [],
         matchStatuses: new Map(),
+        settlements: new Map(),
         predictions: new Map(),
         drafts: new Map(),
         expandedMatchId: null,
@@ -138,6 +141,7 @@
 
         await loadPredictions();
         await loadMatchStatuses();
+        await loadMatchSettlements();
         await loadRanking();
         renderMatches();
     }
@@ -150,7 +154,7 @@
             });
         });
         elements.logoutButton.addEventListener('click', logout);
-        elements.refreshRanking.addEventListener('click', loadRanking);
+        elements.refreshRanking.addEventListener('click', refreshRankingAndSettlements);
         elements.infoButton.addEventListener('click', openInfoModal);
         elements.closeInfo.addEventListener('click', closeInfoModal);
         elements.infoModal.addEventListener('click', function (event) {
@@ -425,6 +429,7 @@
         const draft = getDraft(match.id);
         const expanded = state.expandedMatchId === match.id;
         const lockStatus = getMatchLockStatus(match);
+        const settlement = state.settlements.get(match.id);
         const locked = lockStatus.isLocked;
         const changed = JSON.stringify(draft) !== JSON.stringify(saved ? saved.picks : {});
         const selectedCount = Object.keys(draft).length;
@@ -444,6 +449,7 @@
                             <span class="tag">Mecz ${match.matchNumber}</span>
                             <span class="tag">${escapeHtml(stageName)}</span>
                             ${match.group ? `<span class="tag">Grupa ${escapeHtml(match.group)}</span>` : ''}
+                            ${settlement ? '<span class="tag settled-tag">Rozliczony</span>' : ''}
                             ${locked ? `<span class="tag lock-tag">${escapeHtml(lockStatus.reason)}</span>` : ''}
                         </div>
                         <div class="match-teams">
@@ -469,7 +475,7 @@
                 ${expanded ? `<div class="match-body">
                     <div class="events-grid">
                         ${MARKETS.map(function (market) {
-                            return renderMarket(match, market, draft, locked);
+                            return renderMarket(match, market, draft, locked, settlement);
                         }).join('')}
                     </div>
                     <div class="match-actions">
@@ -483,8 +489,10 @@
         `;
     }
 
-    function renderMarket(match, market, draft, locked) {
+    function renderMarket(match, market, draft, locked, settlement) {
         const options = market.options(match);
+        const correctValue = settlement && settlement.correctPicks ? settlement.correctPicks[market.field] : null;
+        const marketStats = settlement && settlement.pickStats ? settlement.pickStats[market.field] : null;
         return `
             <div class="event-row">
                 <div class="event-title">
@@ -494,22 +502,50 @@
                 <div class="pick-options" style="--option-count: ${options.length}">
                     ${options.map(function (option) {
                         const selected = draft[market.field] === option.value;
+                        const correct = isCorrectOption(market.field, option.value, correctValue);
+                        const wrong = Boolean(settlement && selected && correctValue && !correct);
+                        const optionStats = marketStats && marketStats.options ? marketStats.options[option.value] : null;
+                        const optionClasses = [
+                            'pick-option',
+                            selected ? 'selected' : '',
+                            correct ? 'correct-option' : '',
+                            wrong ? 'wrong-option' : '',
+                        ].filter(Boolean).join(' ');
                         return `
                             <button
-                                class="pick-option ${selected ? 'selected' : ''}"
+                                class="${optionClasses}"
                                 type="button"
                                 data-match-id="${match.id}"
                                 data-field="${market.field}"
                                 data-value="${option.value}"
                                 title="${escapeHtml(option.title || option.label)}"
                                 ${locked ? 'disabled' : ''}>
-                                ${escapeHtml(option.label)}
+                                <span class="pick-label">${escapeHtml(option.label)}</span>
+                                ${correct ? '<span class="correct-marker">✓ poprawne</span>' : ''}
+                                ${settlement ? `<span class="pick-share">${escapeHtml(formatPickShare(optionStats))}</span>` : ''}
                             </button>
                         `;
                     }).join('')}
                 </div>
             </div>
         `;
+    }
+
+    function isCorrectOption(field, value, correctValue) {
+        if (!correctValue) {
+            return false;
+        }
+        if (correctValue === 'X' && TIE_AWARDS_ALL_FIELDS.has(field)) {
+            return value === '1' || value === '2';
+        }
+        return value === correctValue;
+    }
+
+    function formatPickShare(optionStats) {
+        const percent = optionStats && Number.isFinite(Number(optionStats.percent)) ? Number(optionStats.percent) : 0;
+        const rounded = Math.round(percent * 10) / 10;
+        const text = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+        return text + '% typów';
     }
 
     function getDraft(matchId) {
@@ -815,6 +851,34 @@
                 lockReason: status.lock_reason || '',
             });
         });
+    }
+
+    async function loadMatchSettlements() {
+        state.settlements.clear();
+
+        if (!sb) {
+            return;
+        }
+
+        const response = await sb.rpc('typer_get_match_settlements');
+        if (response.error) {
+            console.warn('Typer match settlements unavailable:', response.error.message);
+            return;
+        }
+
+        (response.data || []).forEach(function (settlement) {
+            state.settlements.set(Number(settlement.match_id), {
+                correctPicks: settlement.correct_picks || {},
+                pickStats: settlement.pick_stats || {},
+                updatedAt: settlement.updated_at,
+            });
+        });
+    }
+
+    async function refreshRankingAndSettlements() {
+        await loadMatchSettlements();
+        await loadRanking();
+        renderMatches();
     }
 
     async function loadRanking() {
