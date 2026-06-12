@@ -156,6 +156,19 @@
         </div>
     </div>
 
+    <div class="info-modal hidden" id="player-profile-modal" role="dialog" aria-modal="true" aria-labelledby="player-profile-title">
+        <div class="info-modal-content player-profile-content">
+            <div class="panel-heading">
+                <h2 id="player-profile-title">Profil gracza</h2>
+                <button class="ghost-button" id="close-player-profile" type="button">Zamknij</button>
+            </div>
+
+            <div class="player-profile-body" id="player-profile-body">
+                <div class="empty-state">Ładowanie profilu...</div>
+            </div>
+        </div>
+    </div>
+
     <script src="../menu.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="typer.js"></script>

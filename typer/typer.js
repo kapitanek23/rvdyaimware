@@ -102,6 +102,7 @@
             authSubmit: document.getElementById('auth-submit'),
             authTabs: document.querySelectorAll('[data-auth-mode]'),
             closeInfo: document.getElementById('close-info'),
+            closePlayerProfile: document.getElementById('close-player-profile'),
             currentNick: document.getElementById('current-nick'),
             groupFilter: document.getElementById('group-filter'),
             infoButton: document.getElementById('info-button'),
@@ -112,6 +113,9 @@
             messageBar: document.getElementById('message-bar'),
             nickInput: document.getElementById('nick-input'),
             passwordInput: document.getElementById('password-input'),
+            playerProfileBody: document.getElementById('player-profile-body'),
+            playerProfileModal: document.getElementById('player-profile-modal'),
+            playerProfileTitle: document.getElementById('player-profile-title'),
             rankingList: document.getElementById('ranking-list'),
             refreshRanking: document.getElementById('refresh-ranking'),
             savedFilter: document.getElementById('saved-filter'),
@@ -157,14 +161,32 @@
         elements.refreshRanking.addEventListener('click', refreshRankingAndSettlements);
         elements.infoButton.addEventListener('click', openInfoModal);
         elements.closeInfo.addEventListener('click', closeInfoModal);
+        elements.closePlayerProfile.addEventListener('click', closePlayerProfileModal);
         elements.infoModal.addEventListener('click', function (event) {
             if (event.target === elements.infoModal) {
                 closeInfoModal();
             }
         });
+        elements.playerProfileModal.addEventListener('click', function (event) {
+            if (event.target === elements.playerProfileModal) {
+                closePlayerProfileModal();
+            }
+        });
         document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape' && !elements.infoModal.classList.contains('hidden')) {
-                closeInfoModal();
+            if (event.key === 'Escape') {
+                if (!elements.infoModal.classList.contains('hidden')) {
+                    closeInfoModal();
+                }
+                if (!elements.playerProfileModal.classList.contains('hidden')) {
+                    closePlayerProfileModal();
+                }
+            }
+        });
+
+        elements.rankingList.addEventListener('click', function (event) {
+            const profileButton = event.target.closest('[data-player-nick]');
+            if (profileButton) {
+                openPlayerProfile(profileButton.dataset.playerNick);
             }
         });
 
@@ -212,6 +234,98 @@
 
     function closeInfoModal() {
         elements.infoModal.classList.add('hidden');
+    }
+
+    function closePlayerProfileModal() {
+        elements.playerProfileModal.classList.add('hidden');
+    }
+
+    async function openPlayerProfile(nick) {
+        const playerNick = nick || '';
+        elements.playerProfileTitle.textContent = 'Profil: ' + playerNick;
+        elements.playerProfileBody.innerHTML = '<div class="empty-state">Ładowanie profilu...</div>';
+        elements.playerProfileModal.classList.remove('hidden');
+
+        if (!sb) {
+            elements.playerProfileBody.innerHTML = '<div class="empty-state">Brak połączenia z Supabase.</div>';
+            return;
+        }
+
+        const response = await sb.rpc('typer_get_player_profile', {
+            p_nick: playerNick,
+        });
+
+        if (response.error) {
+            elements.playerProfileBody.innerHTML = '<div class="empty-state">Profil gracza czeka na aktualizację bazy.</div>';
+            console.warn('Typer player profile unavailable:', response.error.message);
+            return;
+        }
+
+        renderPlayerProfile(response.data || []);
+    }
+
+    function renderPlayerProfile(rows) {
+        if (rows.length === 0) {
+            elements.playerProfileBody.innerHTML = '<div class="empty-state">Ten gracz nie ma jeszcze zapisanych typów.</div>';
+            return;
+        }
+
+        elements.playerProfileBody.innerHTML = `
+            <p class="profile-note">Typy dla meczów, które nie są jeszcze zablokowane, pozostają ukryte do deadline’u.</p>
+            <div class="profile-matches">
+                ${rows.map(renderPlayerProfileMatch).join('')}
+            </div>
+        `;
+    }
+
+    function renderPlayerProfileMatch(row) {
+        const matchId = Number(row.match_id);
+        const match = getMatchById(matchId) || createFallbackMatch(matchId);
+        const picks = row.picks || {};
+        const visible = Boolean(row.is_visible);
+        const savedAt = row.saved_at ? formatDate(new Date(row.saved_at)) : 'Brak daty zapisu';
+        const lockText = row.lock_reason || 'Typy ukryte do blokady meczu.';
+
+        return `
+            <article class="profile-match-card">
+                <div class="profile-match-top">
+                    <div>
+                        <h3>${escapeHtml(match.homeLabel)} vs ${escapeHtml(match.awayLabel)}</h3>
+                        <p>${escapeHtml(formatDate(match.kickoffDate))}</p>
+                    </div>
+                    <span>Zapisano: ${escapeHtml(savedAt)}</span>
+                </div>
+                ${visible ? `
+                    <div class="profile-picks-grid">
+                        ${MARKETS.map(function (market) {
+                            return renderProfilePick(match, market, picks);
+                        }).join('')}
+                    </div>
+                ` : `<div class="profile-hidden">${escapeHtml(lockText)}</div>`}
+            </article>
+        `;
+    }
+
+    function renderProfilePick(match, market, picks) {
+        const value = picks[market.field];
+        return `
+            <div class="profile-pick">
+                <span>${escapeHtml(market.title)}</span>
+                <strong>${escapeHtml(getPickLabel(match, market, value))}</strong>
+            </div>
+        `;
+    }
+
+    function getPickLabel(match, market, value) {
+        if (!value) {
+            return 'Brak typu';
+        }
+
+        const option = market.options(match).find(function (item) {
+            return item.value === value;
+        });
+
+        return option ? option.label : value;
     }
 
     async function loadData() {
@@ -422,6 +536,24 @@
 
             return true;
         });
+    }
+
+    function getMatchById(matchId) {
+        return state.matches.find(function (match) {
+            return match.id === matchId;
+        }) || null;
+    }
+
+    function createFallbackMatch(matchId) {
+        return {
+            id: matchId,
+            matchNumber: matchId,
+            homeTeam: null,
+            awayTeam: null,
+            homeLabel: 'Drużyna 1',
+            awayLabel: 'Drużyna 2',
+            kickoffDate: null,
+        };
     }
 
     function renderMatchCard(match) {
@@ -902,14 +1034,14 @@
 
         elements.rankingList.innerHTML = ranking.map(function (row) {
             return `
-                <div class="ranking-row">
+                <button class="ranking-row ranking-button" type="button" data-player-nick="${escapeHtml(row.nick)}">
                     <span class="ranking-place">${row.place}</span>
                     <div>
                         <div class="ranking-nick">${escapeHtml(row.nick)}</div>
                         <div class="ranking-meta">${row.saved_matches || 0} zapisanych, ${row.settled_matches || 0} rozliczonych</div>
                     </div>
                     <strong class="ranking-points">${row.points || 0}</strong>
-                </div>
+                </button>
             `;
         }).join('');
     }
