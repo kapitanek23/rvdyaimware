@@ -81,6 +81,7 @@
         matches: [],
         matchStatuses: new Map(),
         settlements: new Map(),
+        pickStats: new Map(),
         predictions: new Map(),
         drafts: new Map(),
         expandedMatchId: null,
@@ -170,6 +171,7 @@
         await loadPredictions();
         await loadMatchStatuses();
         await loadMatchSettlements();
+        await loadPickStats();
         await loadRanking();
         await loadDailyPicks();
         renderMatches();
@@ -1290,7 +1292,10 @@
     function renderMarket(match, market, draft, locked, settlement) {
         const options = market.options(match);
         const correctValue = settlement && settlement.correctPicks ? settlement.correctPicks[market.field] : null;
-        const marketStats = settlement && settlement.pickStats ? settlement.pickStats[market.field] : null;
+        const lockedPickStats = state.pickStats.get(match.id);
+        const fallbackPickStats = locked && settlement && settlement.pickStats ? settlement.pickStats : null;
+        const matchPickStats = lockedPickStats || fallbackPickStats;
+        const marketStats = matchPickStats ? matchPickStats[market.field] : null;
         return `
             <div class="event-row">
                 <div class="event-title">
@@ -1320,7 +1325,7 @@
                                 ${locked ? 'disabled' : ''}>
                                 <span class="pick-label">${escapeHtml(option.label)}</span>
                                 ${correct ? '<span class="correct-marker">✓ poprawne</span>' : ''}
-                                ${settlement ? `<span class="pick-share">${escapeHtml(formatPickShare(optionStats))}</span>` : ''}
+                                ${marketStats ? `<span class="pick-share">${escapeHtml(formatPickShare(optionStats))}</span>` : ''}
                             </button>
                         `;
                     }).join('')}
@@ -1673,8 +1678,27 @@
         });
     }
 
+    async function loadPickStats() {
+        state.pickStats.clear();
+
+        if (!sb) {
+            return;
+        }
+
+        const response = await sb.rpc('typer_get_locked_pick_stats');
+        if (response.error) {
+            console.warn('Typer locked pick stats unavailable:', response.error.message);
+            return;
+        }
+
+        (response.data || []).forEach(function (stats) {
+            state.pickStats.set(Number(stats.match_id), stats.pick_stats || {});
+        });
+    }
+
     async function refreshRankingAndSettlements() {
         await loadMatchSettlements();
+        await loadPickStats();
         await loadRanking();
         await loadDailyPicks();
         renderMatches();
