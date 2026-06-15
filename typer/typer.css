@@ -838,7 +838,8 @@ select:focus {
 }
 
 .ranking-history-content {
-    width: min(1040px, 100%);
+    width: min(1480px, calc(100vw - 28px));
+    max-height: calc(100vh - 28px);
 }
 
 .ranking-history-body {
@@ -846,7 +847,101 @@ select:focus {
     gap: 14px;
 }
 
+.history-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 8px;
+    background: #0f1319;
+}
+
+.history-toolbar strong {
+    display: block;
+    color: #f8fafc;
+    font-size: 0.92rem;
+}
+
+.history-toolbar span {
+    color: #8c98a6;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.history-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.history-actions button {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    background: #171d24;
+    color: #cbd5df;
+    cursor: pointer;
+    font-size: 0.76rem;
+    font-weight: 900;
+    padding: 7px 10px;
+}
+
+.history-actions button:hover,
+.history-actions button:focus-visible {
+    border-color: rgba(110, 231, 183, 0.42);
+    color: #f8fafc;
+    outline: none;
+}
+
+.history-player-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.history-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: #111820;
+    color: #aab4bf;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 900;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.history-filter-chip.selected {
+    border-color: rgba(255, 255, 255, 0.18);
+    background: #171d24;
+    color: #f8fafc;
+}
+
+.history-filter-chip input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.history-filter-chip i {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--history-color);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--history-color) 18%, transparent);
+}
+
+.history-filter-chip strong {
+    color: #8c98a6;
+    font-size: 0.72rem;
+}
+
 .history-chart-wrap {
+    position: relative;
     overflow-x: auto;
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 8px;
@@ -855,7 +950,7 @@ select:focus {
 
 .history-chart {
     display: block;
-    min-width: 720px;
+    min-width: 1120px;
     width: 100%;
     height: auto;
 }
@@ -884,12 +979,48 @@ select:focus {
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
-    stroke-width: 3;
+    stroke-width: 3.4;
+    transition: opacity 0.15s ease, stroke-width 0.15s ease;
+}
+
+.history-hit-line {
+    fill: none;
+    opacity: 0;
+    pointer-events: stroke;
+    stroke: transparent;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 20;
+}
+
+.history-player-series:hover .history-line {
+    opacity: 1;
+    stroke-width: 5;
 }
 
 .history-point {
     stroke: #0f1319;
     stroke-width: 2;
+    cursor: pointer;
+}
+
+.history-end-label {
+    cursor: pointer;
+}
+
+.history-end-label line {
+    opacity: 0.45;
+    stroke-dasharray: 3 4;
+    stroke-width: 1.5;
+}
+
+.history-end-label text {
+    font-size: 13px;
+    font-weight: 900;
+    paint-order: stroke;
+    stroke: #0f1319;
+    stroke-width: 4px;
+    stroke-linejoin: round;
 }
 
 .history-legend {
@@ -915,6 +1046,64 @@ select:focus {
     height: 10px;
     border-radius: 999px;
     background: var(--history-color);
+}
+
+.history-tooltip {
+    position: fixed;
+    z-index: 5000;
+    min-width: 210px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background: rgba(13, 18, 25, 0.96);
+    box-shadow: 0 18px 52px rgba(0, 0, 0, 0.38);
+    color: #d7dee7;
+    font-size: 0.78rem;
+    font-weight: 800;
+    pointer-events: none;
+}
+
+.history-tooltip strong,
+.history-tooltip span {
+    display: block;
+}
+
+.history-tooltip strong {
+    color: #f8fafc;
+    font-size: 0.92rem;
+    margin-bottom: 2px;
+}
+
+.history-tooltip span {
+    color: #8c98a6;
+    margin-bottom: 8px;
+}
+
+.history-tooltip div {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 4px;
+}
+
+.history-tooltip b {
+    color: #f8fafc;
+}
+
+.history-tooltip em {
+    font-style: normal;
+}
+
+.history-tooltip-up em {
+    color: #86efac;
+}
+
+.history-tooltip-down em {
+    color: #fca5a5;
+}
+
+.history-tooltip-same em {
+    color: #f8fafc;
 }
 
 .hidden {
