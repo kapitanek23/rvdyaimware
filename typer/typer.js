@@ -89,6 +89,9 @@
         rankingHistoryFiltersReady: false,
         dailyPickDays: [],
         dailyPicksByDay: new Map(),
+        dailyPicksError: '',
+        dailySinglePicksByDay: new Map(),
+        dailySinglePicksError: '',
         selectedDailyPickDay: null,
         filters: {
             search: '',
@@ -111,11 +114,13 @@
             closeInfo: document.getElementById('close-info'),
             closePlayerProfile: document.getElementById('close-player-profile'),
             closeRankingHistory: document.getElementById('close-ranking-history'),
+            closeSinglePick: document.getElementById('close-single-pick'),
             currentNick: document.getElementById('current-nick'),
             dailyPicksDate: document.getElementById('daily-picks-date'),
             dailyPicksList: document.getElementById('daily-picks-list'),
             dailyPicksNext: document.getElementById('daily-picks-next'),
             dailyPicksPrev: document.getElementById('daily-picks-prev'),
+            dailySinglePicksList: document.getElementById('daily-single-picks-list'),
             groupFilter: document.getElementById('group-filter'),
             infoButton: document.getElementById('info-button'),
             infoModal: document.getElementById('info-modal'),
@@ -136,6 +141,9 @@
             savedFilter: document.getElementById('saved-filter'),
             searchInput: document.getElementById('search-input'),
             sessionPill: document.getElementById('session-pill'),
+            singlePickBody: document.getElementById('single-pick-body'),
+            singlePickModal: document.getElementById('single-pick-modal'),
+            singlePickTitle: document.getElementById('single-pick-title'),
             stageFilter: document.getElementById('stage-filter'),
             userCard: document.getElementById('user-card'),
         };
@@ -186,6 +194,7 @@
         elements.closePlayerProfile.addEventListener('click', closePlayerProfileModal);
         elements.openRankingHistory.addEventListener('click', openRankingHistoryModal);
         elements.closeRankingHistory.addEventListener('click', closeRankingHistoryModal);
+        elements.closeSinglePick.addEventListener('click', closeSinglePickModal);
         elements.infoModal.addEventListener('click', function (event) {
             if (event.target === elements.infoModal) {
                 closeInfoModal();
@@ -201,11 +210,17 @@
                 closeRankingHistoryModal();
             }
         });
+        elements.singlePickModal.addEventListener('click', function (event) {
+            if (event.target === elements.singlePickModal) {
+                closeSinglePickModal();
+            }
+        });
         elements.rankingHistoryBody.addEventListener('click', handleRankingHistoryClick);
         elements.rankingHistoryBody.addEventListener('change', handleRankingHistoryChange);
         elements.rankingHistoryBody.addEventListener('mouseover', handleRankingHistoryTooltipShow);
         elements.rankingHistoryBody.addEventListener('mousemove', handleRankingHistoryTooltipMove);
         elements.rankingHistoryBody.addEventListener('mouseout', handleRankingHistoryTooltipHide);
+        elements.dailySinglePicksList.addEventListener('click', handleDailySinglePickClick);
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') {
                 if (!elements.infoModal.classList.contains('hidden')) {
@@ -216,6 +231,9 @@
                 }
                 if (!elements.rankingHistoryModal.classList.contains('hidden')) {
                     closeRankingHistoryModal();
+                }
+                if (!elements.singlePickModal.classList.contains('hidden')) {
+                    closeSinglePickModal();
                 }
             }
         });
@@ -280,6 +298,59 @@
     function closeRankingHistoryModal() {
         elements.rankingHistoryModal.classList.add('hidden');
         hideRankingHistoryTooltip();
+    }
+
+    function closeSinglePickModal() {
+        elements.singlePickModal.classList.add('hidden');
+    }
+
+    function openSinglePickModal(entry) {
+        if (!entry) {
+            return;
+        }
+
+        const matchId = Number(entry.match_id);
+        const match = getMatchById(matchId) || createFallbackMatch(matchId);
+        const settlement = state.settlements.get(matchId);
+        const picks = entry.picks || {};
+        const savedAt = entry.submitted_at ? formatDate(new Date(entry.submitted_at)) : 'Brak daty zapisu';
+
+        elements.singlePickTitle.textContent = 'Typ: ' + (entry.player_nick || 'Gracz');
+        elements.singlePickBody.innerHTML = `
+            <div class="single-pick-summary">
+                <div>
+                    <span>Gracz</span>
+                    <strong>${escapeHtml(entry.player_nick || 'Gracz')}</strong>
+                </div>
+                <div>
+                    <span>Punkty</span>
+                    <strong>${Number(entry.points) || 0} pkt</strong>
+                </div>
+                <div>
+                    <span>Mecz</span>
+                    <strong>${escapeHtml(match.homeLabel)} vs ${escapeHtml(match.awayLabel)}</strong>
+                </div>
+                <div>
+                    <span>Zapisano</span>
+                    <strong>${escapeHtml(savedAt)}</strong>
+                </div>
+            </div>
+            <article class="profile-match-card">
+                <div class="profile-match-top">
+                    <div>
+                        <h3>${escapeHtml(match.homeLabel)} vs ${escapeHtml(match.awayLabel)}</h3>
+                        <p>${escapeHtml(formatDate(match.kickoffDate))}</p>
+                    </div>
+                    <span>Mecz ${match.matchNumber || match.id}</span>
+                </div>
+                <div class="profile-picks-grid">
+                    ${MARKETS.map(function (market) {
+                        return renderProfilePick(match, market, picks, settlement);
+                    }).join('')}
+                </div>
+            </article>
+        `;
+        elements.singlePickModal.classList.remove('hidden');
     }
 
     async function openPlayerProfile(nick) {
@@ -1592,43 +1663,87 @@
     async function loadDailyPicks() {
         state.dailyPickDays = [];
         state.dailyPicksByDay.clear();
+        state.dailyPicksError = '';
+        state.dailySinglePicksByDay.clear();
+        state.dailySinglePicksError = '';
 
         if (!sb) {
             elements.dailyPicksDate.textContent = 'Brak połączenia';
             elements.dailyPicksList.innerHTML = '<div class="empty-state">Brak połączenia z Supabase.</div>';
+            elements.dailySinglePicksList.innerHTML = '<div class="empty-state">Brak połączenia z Supabase.</div>';
             updateDailyPickArrows();
             return;
         }
 
-        const response = await sb.rpc('typer_get_daily_pick_extremes');
-        if (response.error) {
-            elements.dailyPicksDate.textContent = 'Typy dnia';
-            elements.dailyPicksList.innerHTML = '<div class="empty-state">Typy dnia czekają na aktualizację bazy.</div>';
-            updateDailyPickArrows();
-            console.warn('Typer daily picks unavailable:', response.error.message);
-            return;
+        const playerResponse = await sb.rpc('typer_get_daily_pick_extremes');
+        if (playerResponse.error) {
+            state.dailyPicksError = 'Gracze dnia czekają na aktualizację bazy.';
+            console.warn('Typer daily players unavailable:', playerResponse.error.message);
+        } else {
+            (playerResponse.data || []).forEach(function (row) {
+                const dayKey = row.match_day;
+                if (!state.dailyPicksByDay.has(dayKey)) {
+                    state.dailyPicksByDay.set(dayKey, {
+                        key: dayKey,
+                        label: row.day_label || dayKey,
+                        best: null,
+                        worst: null,
+                    });
+                }
+
+                state.dailyPicksByDay.get(dayKey)[row.kind] = row;
+            });
         }
 
-        (response.data || []).forEach(function (row) {
-            const dayKey = row.match_day;
-            if (!state.dailyPicksByDay.has(dayKey)) {
-                state.dailyPicksByDay.set(dayKey, {
-                    key: dayKey,
-                    label: row.day_label || dayKey,
-                    best: null,
-                    worst: null,
-                });
-            }
+        const singleResponse = await sb.rpc('typer_get_daily_single_pick_extremes');
+        if (singleResponse.error) {
+            state.dailySinglePicksError = 'Pojedyncze typy czekają na aktualizację bazy.';
+            console.warn('Typer daily single picks unavailable:', singleResponse.error.message);
+        } else {
+            (singleResponse.data || []).forEach(function (row) {
+                const dayKey = row.match_day;
+                if (!state.dailySinglePicksByDay.has(dayKey)) {
+                    state.dailySinglePicksByDay.set(dayKey, {
+                        key: dayKey,
+                        label: row.day_label || dayKey,
+                        best: null,
+                        worst: null,
+                    });
+                }
 
-            state.dailyPicksByDay.get(dayKey)[row.kind] = row;
-        });
+                state.dailySinglePicksByDay.get(dayKey)[row.kind] = row;
+            });
+        }
 
-        state.dailyPickDays = Array.from(state.dailyPicksByDay.values()).sort(function (left, right) {
-            return left.key.localeCompare(right.key);
-        });
+        state.dailyPickDays = buildDailyPickDays();
 
         selectDefaultDailyPickDay();
         renderDailyPicks();
+        renderDailySinglePicks();
+    }
+
+    function buildDailyPickDays() {
+        const days = new Map();
+
+        state.dailyPicksByDay.forEach(function (day) {
+            days.set(day.key, {
+                key: day.key,
+                label: day.label,
+            });
+        });
+
+        state.dailySinglePicksByDay.forEach(function (day) {
+            if (!days.has(day.key)) {
+                days.set(day.key, {
+                    key: day.key,
+                    label: day.label,
+                });
+            }
+        });
+
+        return Array.from(days.values()).sort(function (left, right) {
+            return left.key.localeCompare(right.key);
+        });
     }
 
     function selectDefaultDailyPickDay() {
@@ -1658,25 +1773,34 @@
     }
 
     function renderDailyPicks() {
+        if (state.dailyPicksError) {
+            elements.dailyPicksList.innerHTML = '<div class="empty-state">' + escapeHtml(state.dailyPicksError) + '</div>';
+        }
+
         if (state.dailyPickDays.length === 0 || !state.selectedDailyPickDay) {
             elements.dailyPicksDate.textContent = 'Brak danych';
-            elements.dailyPicksList.innerHTML = '<div class="empty-state">Brak rozliczonych dni z typami.</div>';
+            if (!state.dailyPicksError) {
+                elements.dailyPicksList.innerHTML = '<div class="empty-state">Brak rozliczonych dni z graczami.</div>';
+            }
             updateDailyPickArrows();
             return;
         }
 
+        const selectedDay = state.dailyPickDays[getSelectedDailyPickDayIndex()];
         const day = state.dailyPicksByDay.get(state.selectedDailyPickDay);
-        elements.dailyPicksDate.textContent = day.label;
-        elements.dailyPicksList.innerHTML = `
-            ${renderDailyPickCard('best', day.best)}
-            ${renderDailyPickCard('worst', day.worst)}
-        `;
+        elements.dailyPicksDate.textContent = selectedDay ? selectedDay.label : state.selectedDailyPickDay;
+        if (!state.dailyPicksError) {
+            elements.dailyPicksList.innerHTML = day ? `
+                ${renderDailyPickCard('best', day.best)}
+                ${renderDailyPickCard('worst', day.worst)}
+            ` : '<div class="empty-state">Brak graczy dnia dla tej daty.</div>';
+        }
         updateDailyPickArrows();
     }
 
     function renderDailyPickCard(kind, entry) {
         const isBest = kind === 'best';
-        const title = isBest ? 'Najlepszy typ dnia' : 'Najgorszy typ dnia';
+        const title = isBest ? 'Najlepszy gracz dnia' : 'Najgorszy gracz dnia';
         const icon = isBest ? '▲' : '▼';
 
         if (!entry) {
@@ -1701,6 +1825,67 @@
         `;
     }
 
+    function renderDailySinglePicks() {
+        if (state.dailySinglePicksError) {
+            elements.dailySinglePicksList.innerHTML = '<div class="empty-state">' + escapeHtml(state.dailySinglePicksError) + '</div>';
+            return;
+        }
+
+        if (state.dailyPickDays.length === 0 || !state.selectedDailyPickDay) {
+            elements.dailySinglePicksList.innerHTML = '<div class="empty-state">Brak rozliczonych pojedynczych typów.</div>';
+            return;
+        }
+
+        const day = state.dailySinglePicksByDay.get(state.selectedDailyPickDay);
+        elements.dailySinglePicksList.innerHTML = day ? `
+            ${renderDailySinglePickCard('best', day.best)}
+            ${renderDailySinglePickCard('worst', day.worst)}
+        ` : '<div class="empty-state">Brak pojedynczych typów dla tej daty.</div>';
+    }
+
+    function renderDailySinglePickCard(kind, entry) {
+        const isBest = kind === 'best';
+        const title = isBest ? 'Najlepszy pojedynczy typ' : 'Najgorszy pojedynczy typ';
+        const icon = isBest ? '▲' : '▼';
+
+        if (!entry) {
+            return `
+                <article class="daily-pick-card ${isBest ? 'best' : 'worst'}">
+                    <div class="daily-pick-title"><span>${icon}</span>${title}</div>
+                    <div class="daily-pick-empty">Brak typu dla tego dnia.</div>
+                </article>
+            `;
+        }
+
+        const matchId = Number(entry.match_id);
+        const match = getMatchById(matchId) || createFallbackMatch(matchId);
+        const savedAt = entry.submitted_at ? formatDate(new Date(entry.submitted_at)) : 'Brak daty zapisu';
+
+        return `
+            <button class="daily-pick-card single-pick-card ${isBest ? 'best' : 'worst'}" type="button" data-single-pick-kind="${kind}">
+                <div class="daily-pick-title"><span>${icon}</span>${title}</div>
+                <div class="daily-pick-player">${escapeHtml(entry.player_nick)}</div>
+                <div class="daily-pick-score">${Number(entry.points) || 0} pkt</div>
+                <div class="daily-pick-meta">
+                    <span>${escapeHtml(match.homeLabel)} vs ${escapeHtml(match.awayLabel)}</span>
+                    <span>Oddany: ${escapeHtml(savedAt)}</span>
+                    <span>Kliknij, żeby zobaczyć typy</span>
+                </div>
+            </button>
+        `;
+    }
+
+    function handleDailySinglePickClick(event) {
+        const button = event.target.closest('[data-single-pick-kind]');
+        if (!button || !elements.dailySinglePicksList.contains(button)) {
+            return;
+        }
+
+        const day = state.dailySinglePicksByDay.get(state.selectedDailyPickDay);
+        const entry = day && day[button.dataset.singlePickKind];
+        openSinglePickModal(entry);
+    }
+
     function moveDailyPicksDay(direction) {
         const currentIndex = getSelectedDailyPickDayIndex();
         const nextIndex = currentIndex + direction;
@@ -1710,6 +1895,7 @@
 
         state.selectedDailyPickDay = state.dailyPickDays[nextIndex].key;
         renderDailyPicks();
+        renderDailySinglePicks();
     }
 
     function getSelectedDailyPickDayIndex() {

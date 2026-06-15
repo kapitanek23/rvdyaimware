@@ -85,7 +85,7 @@
 
                 <section class="daily-picks-panel">
                     <div class="panel-heading">
-                        <h2>Typy dnia</h2>
+                        <h2>Gracze dnia</h2>
                     </div>
                     <div class="daily-picks-nav">
                         <button class="daily-picks-arrow" id="daily-picks-prev" type="button" aria-label="Poprzedni dzień">‹</button>
@@ -93,7 +93,17 @@
                         <button class="daily-picks-arrow" id="daily-picks-next" type="button" aria-label="Następny dzień">›</button>
                     </div>
                     <div class="daily-picks-list" id="daily-picks-list">
-                        <div class="empty-state">Ładowanie typów dnia...</div>
+                        <div class="empty-state">Ładowanie graczy dnia...</div>
+                    </div>
+                </section>
+
+                <section class="daily-single-picks-panel">
+                    <div class="panel-heading">
+                        <h2>Pojedyncze typy</h2>
+                    </div>
+                    <p class="daily-section-note">Najlepszy i najgorszy pojedynczy typ z wybranego dnia.</p>
+                    <div class="daily-picks-list" id="daily-single-picks-list">
+                        <div class="empty-state">Ładowanie pojedynczych typów...</div>
                     </div>
                 </section>
             </aside>
@@ -180,6 +190,19 @@
 
             <div class="player-profile-body" id="player-profile-body">
                 <div class="empty-state">Ładowanie profilu...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-modal hidden" id="single-pick-modal" role="dialog" aria-modal="true" aria-labelledby="single-pick-title">
+        <div class="info-modal-content single-pick-content">
+            <div class="panel-heading">
+                <h2 id="single-pick-title">Szczegóły typu</h2>
+                <button class="ghost-button" id="close-single-pick" type="button">Zamknij</button>
+            </div>
+
+            <div class="single-pick-body" id="single-pick-body">
+                <div class="empty-state">Ładowanie typu...</div>
             </div>
         </div>
     </div>
