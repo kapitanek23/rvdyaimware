@@ -325,6 +325,25 @@ select:focus {
     text-align: right;
 }
 
+.history-button {
+    width: 100%;
+    margin-top: 12px;
+    border: 1px solid rgba(244, 201, 93, 0.34);
+    border-radius: 8px;
+    background: rgba(244, 201, 93, 0.1);
+    color: #fde68a;
+    cursor: pointer;
+    font-size: 0.86rem;
+    font-weight: 900;
+    padding: 10px 12px;
+}
+
+.history-button:hover,
+.history-button:focus-visible {
+    background: rgba(244, 201, 93, 0.17);
+    outline: 1px solid rgba(244, 201, 93, 0.42);
+}
+
 .filters-bar {
     display: grid;
     grid-template-columns: minmax(240px, 1.3fr) repeat(3, minmax(150px, 0.7fr));
@@ -744,9 +763,20 @@ select:focus {
     justify-content: space-between;
     gap: 10px;
     min-width: 0;
+    border-left: 3px solid transparent;
     padding: 9px 10px;
     border-radius: 8px;
     background: #171d24;
+}
+
+.profile-pick-correct {
+    border-left-color: rgba(110, 231, 183, 0.72);
+    background: linear-gradient(90deg, rgba(20, 83, 45, 0.2), #171d24 48%);
+}
+
+.profile-pick-wrong {
+    border-left-color: rgba(248, 113, 113, 0.68);
+    background: linear-gradient(90deg, rgba(127, 29, 29, 0.18), #171d24 48%);
 }
 
 .profile-pick span {
@@ -759,10 +789,42 @@ select:focus {
 }
 
 .profile-pick strong {
-    color: #6ee7b7;
+    color: #e5edf6;
     font-size: 0.84rem;
     font-weight: 900;
     white-space: nowrap;
+}
+
+.profile-pick-correct strong {
+    color: #d7fbe6;
+}
+
+.profile-pick-wrong strong {
+    color: #ffd8d8;
+}
+
+.profile-pick em {
+    display: inline-grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #cbd5df;
+    font-size: 0.72rem;
+    font-style: normal;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.profile-pick-correct em {
+    background: rgba(22, 101, 52, 0.34);
+    color: #86efac;
+}
+
+.profile-pick-wrong em {
+    background: rgba(153, 27, 27, 0.3);
+    color: #fca5a5;
 }
 
 .profile-hidden {
@@ -773,6 +835,86 @@ select:focus {
     font-size: 0.86rem;
     font-weight: 800;
     text-align: center;
+}
+
+.ranking-history-content {
+    width: min(1040px, 100%);
+}
+
+.ranking-history-body {
+    display: grid;
+    gap: 14px;
+}
+
+.history-chart-wrap {
+    overflow-x: auto;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 8px;
+    background: #0f1319;
+}
+
+.history-chart {
+    display: block;
+    min-width: 720px;
+    width: 100%;
+    height: auto;
+}
+
+.history-chart-bg {
+    fill: #0f1319;
+}
+
+.history-grid {
+    stroke: rgba(255, 255, 255, 0.08);
+    stroke-width: 1;
+}
+
+.history-axis {
+    stroke: rgba(255, 255, 255, 0.2);
+    stroke-width: 1.5;
+}
+
+.history-axis-label {
+    fill: #8c98a6;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.history-line {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 3;
+}
+
+.history-point {
+    stroke: #0f1319;
+    stroke-width: 2;
+}
+
+.history-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.history-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 9px;
+    border-radius: 999px;
+    background: #171d24;
+    color: #cbd5df;
+    font-size: 0.78rem;
+    font-weight: 900;
+}
+
+.history-legend-item i {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--history-color);
 }
 
 .hidden {

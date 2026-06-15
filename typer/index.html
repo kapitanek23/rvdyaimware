@@ -80,6 +80,7 @@
                     <div class="ranking-list" id="ranking-list">
                         <div class="empty-state">Ładowanie rankingu...</div>
                     </div>
+                    <button class="history-button" id="open-ranking-history" type="button">Historia rankingu</button>
                 </section>
             </aside>
 
@@ -165,6 +166,19 @@
 
             <div class="player-profile-body" id="player-profile-body">
                 <div class="empty-state">Ładowanie profilu...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-modal hidden" id="ranking-history-modal" role="dialog" aria-modal="true" aria-labelledby="ranking-history-title">
+        <div class="info-modal-content ranking-history-content">
+            <div class="panel-heading">
+                <h2 id="ranking-history-title">Historia rankingu</h2>
+                <button class="ghost-button" id="close-ranking-history" type="button">Zamknij</button>
+            </div>
+
+            <div class="ranking-history-body" id="ranking-history-body">
+                <div class="empty-state">Ładowanie historii...</div>
             </div>
         </div>
     </div>

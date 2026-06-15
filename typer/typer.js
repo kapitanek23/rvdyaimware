@@ -73,6 +73,7 @@
     ];
 
     const TIE_AWARDS_ALL_FIELDS = new Set(['fouls_more', 'shots_more', 'possession_more']);
+    const HISTORY_COLORS = ['#6ee7b7', '#f4c95d', '#93c5fd', '#fca5a5', '#c4b5fd', '#fdba74', '#67e8f9', '#f9a8d4', '#bef264', '#d8b4fe'];
 
     const state = {
         authMode: 'login',
@@ -103,6 +104,7 @@
             authTabs: document.querySelectorAll('[data-auth-mode]'),
             closeInfo: document.getElementById('close-info'),
             closePlayerProfile: document.getElementById('close-player-profile'),
+            closeRankingHistory: document.getElementById('close-ranking-history'),
             currentNick: document.getElementById('current-nick'),
             groupFilter: document.getElementById('group-filter'),
             infoButton: document.getElementById('info-button'),
@@ -112,10 +114,13 @@
             matchesList: document.getElementById('matches-list'),
             messageBar: document.getElementById('message-bar'),
             nickInput: document.getElementById('nick-input'),
+            openRankingHistory: document.getElementById('open-ranking-history'),
             passwordInput: document.getElementById('password-input'),
             playerProfileBody: document.getElementById('player-profile-body'),
             playerProfileModal: document.getElementById('player-profile-modal'),
             playerProfileTitle: document.getElementById('player-profile-title'),
+            rankingHistoryBody: document.getElementById('ranking-history-body'),
+            rankingHistoryModal: document.getElementById('ranking-history-modal'),
             rankingList: document.getElementById('ranking-list'),
             refreshRanking: document.getElementById('refresh-ranking'),
             savedFilter: document.getElementById('saved-filter'),
@@ -162,6 +167,8 @@
         elements.infoButton.addEventListener('click', openInfoModal);
         elements.closeInfo.addEventListener('click', closeInfoModal);
         elements.closePlayerProfile.addEventListener('click', closePlayerProfileModal);
+        elements.openRankingHistory.addEventListener('click', openRankingHistoryModal);
+        elements.closeRankingHistory.addEventListener('click', closeRankingHistoryModal);
         elements.infoModal.addEventListener('click', function (event) {
             if (event.target === elements.infoModal) {
                 closeInfoModal();
@@ -172,6 +179,11 @@
                 closePlayerProfileModal();
             }
         });
+        elements.rankingHistoryModal.addEventListener('click', function (event) {
+            if (event.target === elements.rankingHistoryModal) {
+                closeRankingHistoryModal();
+            }
+        });
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') {
                 if (!elements.infoModal.classList.contains('hidden')) {
@@ -179,6 +191,9 @@
                 }
                 if (!elements.playerProfileModal.classList.contains('hidden')) {
                     closePlayerProfileModal();
+                }
+                if (!elements.rankingHistoryModal.classList.contains('hidden')) {
+                    closeRankingHistoryModal();
                 }
             }
         });
@@ -240,6 +255,10 @@
         elements.playerProfileModal.classList.add('hidden');
     }
 
+    function closeRankingHistoryModal() {
+        elements.rankingHistoryModal.classList.add('hidden');
+    }
+
     async function openPlayerProfile(nick) {
         const playerNick = nick || '';
         elements.playerProfileTitle.textContent = 'Profil: ' + playerNick;
@@ -250,6 +269,8 @@
             elements.playerProfileBody.innerHTML = '<div class="empty-state">Brak połączenia z Supabase.</div>';
             return;
         }
+
+        await loadMatchSettlements();
 
         const response = await sb.rpc('typer_get_player_profile', {
             p_nick: playerNick,
@@ -262,6 +283,25 @@
         }
 
         renderPlayerProfile(response.data || []);
+    }
+
+    async function openRankingHistoryModal() {
+        elements.rankingHistoryBody.innerHTML = '<div class="empty-state">Ładowanie historii...</div>';
+        elements.rankingHistoryModal.classList.remove('hidden');
+
+        if (!sb) {
+            elements.rankingHistoryBody.innerHTML = '<div class="empty-state">Brak połączenia z Supabase.</div>';
+            return;
+        }
+
+        const response = await sb.rpc('typer_get_ranking_history');
+        if (response.error) {
+            elements.rankingHistoryBody.innerHTML = '<div class="empty-state">Historia rankingu czeka na aktualizację bazy.</div>';
+            console.warn('Typer ranking history unavailable:', response.error.message);
+            return;
+        }
+
+        renderRankingHistory(response.data || []);
     }
 
     function renderPlayerProfile(rows) {
@@ -283,6 +323,7 @@
         const match = getMatchById(matchId) || createFallbackMatch(matchId);
         const picks = row.picks || {};
         const visible = Boolean(row.is_visible);
+        const settlement = state.settlements.get(matchId);
         const savedAt = row.saved_at ? formatDate(new Date(row.saved_at)) : 'Brak daty zapisu';
         const lockText = row.lock_reason || 'Typy ukryte do blokady meczu.';
 
@@ -298,7 +339,7 @@
                 ${visible ? `
                     <div class="profile-picks-grid">
                         ${MARKETS.map(function (market) {
-                            return renderProfilePick(match, market, picks);
+                            return renderProfilePick(match, market, picks, settlement);
                         }).join('')}
                     </div>
                 ` : `<div class="profile-hidden">${escapeHtml(lockText)}</div>`}
@@ -306,14 +347,27 @@
         `;
     }
 
-    function renderProfilePick(match, market, picks) {
+    function renderProfilePick(match, market, picks, settlement) {
         const value = picks[market.field];
+        const status = getProfilePickStatus(market.field, value, settlement);
+        const statusLabel = status === 'correct' ? 'Poprawny typ' : (status === 'wrong' ? 'Błędny typ' : '');
+        const statusIcon = status === 'correct' ? '✓' : (status === 'wrong' ? '×' : '');
+        const classes = ['profile-pick', status ? 'profile-pick-' + status : ''].filter(Boolean).join(' ');
         return `
-            <div class="profile-pick">
+            <div class="${classes}">
                 <span>${escapeHtml(market.title)}</span>
                 <strong>${escapeHtml(getPickLabel(match, market, value))}</strong>
+                ${status ? `<em title="${escapeHtml(statusLabel)}">${escapeHtml(statusIcon)}</em>` : ''}
             </div>
         `;
+    }
+
+    function getProfilePickStatus(field, value, settlement) {
+        const correctValue = settlement && settlement.correctPicks ? settlement.correctPicks[field] : null;
+        if (!value || !correctValue) {
+            return '';
+        }
+        return isCorrectOption(field, value, correctValue) ? 'correct' : 'wrong';
     }
 
     function getPickLabel(match, market, value) {
@@ -326,6 +380,166 @@
         });
 
         return option ? option.label : value;
+    }
+
+    function renderRankingHistory(rows) {
+        if (rows.length === 0) {
+            elements.rankingHistoryBody.innerHTML = '<div class="empty-state">Historia jest jeszcze pusta.</div>';
+            return;
+        }
+
+        const days = getRankingHistoryDays(rows);
+        const pointsByPlayer = getRankingHistoryPlayers(rows);
+        const players = Array.from(pointsByPlayer.keys()).sort(function (left, right) {
+            const finalDay = days[days.length - 1];
+            const rightPoints = pointsByPlayer.get(right).get(finalDay.index) || 0;
+            const leftPoints = pointsByPlayer.get(left).get(finalDay.index) || 0;
+            return rightPoints - leftPoints || left.localeCompare(right, 'pl');
+        });
+        const maxPoints = rows.reduce(function (max, row) {
+            return Math.max(max, Number(row.points) || 0);
+        }, 0);
+
+        elements.rankingHistoryBody.innerHTML = `
+            <p class="profile-note">Wykres pokazuje sumę punktów po każdym dniu z rozliczonymi meczami. Dzień 0 to start gry.</p>
+            <div class="history-chart-wrap">
+                ${renderRankingHistoryChart(days, players, pointsByPlayer, maxPoints)}
+            </div>
+            <div class="history-legend">
+                ${players.map(function (player, index) {
+                    return `
+                        <span class="history-legend-item">
+                            <i style="--history-color: ${getHistoryColor(index)}"></i>
+                            ${escapeHtml(player)}
+                        </span>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    function getRankingHistoryDays(rows) {
+        const days = new Map();
+        rows.forEach(function (row) {
+            const index = Number(row.day_index) || 0;
+            if (!days.has(index)) {
+                days.set(index, {
+                    index: index,
+                    label: row.day_label || 'Dzień ' + index,
+                });
+            }
+        });
+        return Array.from(days.values()).sort(function (left, right) {
+            return left.index - right.index;
+        });
+    }
+
+    function getRankingHistoryPlayers(rows) {
+        const players = new Map();
+        rows.forEach(function (row) {
+            const nick = row.player_nick || 'Gracz';
+            if (!players.has(nick)) {
+                players.set(nick, new Map());
+            }
+            players.get(nick).set(Number(row.day_index) || 0, Number(row.points) || 0);
+        });
+        return players;
+    }
+
+    function renderRankingHistoryChart(days, players, pointsByPlayer, maxPoints) {
+        const width = 900;
+        const height = 420;
+        const padding = {
+            top: 26,
+            right: 24,
+            bottom: 58,
+            left: 48,
+        };
+        const chartWidth = width - padding.left - padding.right;
+        const chartHeight = height - padding.top - padding.bottom;
+        const safeMaxPoints = Math.max(1, maxPoints);
+        const yTicks = getChartTicks(maxPoints);
+        const labelEvery = Math.max(1, Math.ceil(days.length / 8));
+
+        function xForDay(dayIndex) {
+            if (days.length === 1) {
+                return padding.left + chartWidth / 2;
+            }
+            return padding.left + (dayIndex / (days.length - 1)) * chartWidth;
+        }
+
+        function yForPoints(points) {
+            return padding.top + chartHeight - (points / safeMaxPoints) * chartHeight;
+        }
+
+        const grid = yTicks.map(function (tick) {
+            const y = yForPoints(tick);
+            return `
+                <line class="history-grid" x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}"></line>
+                <text class="history-axis-label" x="${padding.left - 10}" y="${y + 4}" text-anchor="end">${tick}</text>
+            `;
+        }).join('');
+
+        const labels = days.map(function (day, dayIndex) {
+            if (dayIndex !== 0 && dayIndex !== days.length - 1 && dayIndex % labelEvery !== 0) {
+                return '';
+            }
+            const x = xForDay(dayIndex);
+            return `<text class="history-axis-label" x="${x}" y="${height - 22}" text-anchor="middle">${escapeHtml(day.label)}</text>`;
+        }).join('');
+
+        const lines = players.map(function (player, playerIndex) {
+            const pointsMap = pointsByPlayer.get(player);
+            const points = days.map(function (day) {
+                return pointsMap.get(day.index) || 0;
+            });
+            const color = getHistoryColor(playerIndex);
+            const polyline = days.map(function (day, dayIndex) {
+                return xForDay(dayIndex) + ',' + yForPoints(points[dayIndex]);
+            }).join(' ');
+            const circles = days.map(function (day, dayIndex) {
+                const x = xForDay(dayIndex);
+                const y = yForPoints(points[dayIndex]);
+                const point = points[dayIndex];
+                return `<circle class="history-point" cx="${x}" cy="${y}" r="4" fill="${color}"><title>${escapeHtml(player)} · ${escapeHtml(day.label)} · ${point} pkt</title></circle>`;
+            }).join('');
+
+            return `
+                <polyline class="history-line" points="${polyline}" stroke="${color}"></polyline>
+                ${circles}
+            `;
+        }).join('');
+
+        return `
+            <svg class="history-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Historia punktów w rankingu">
+                <rect class="history-chart-bg" x="0" y="0" width="${width}" height="${height}"></rect>
+                ${grid}
+                <line class="history-axis" x1="${padding.left}" y1="${padding.top}" x2="${padding.left}" y2="${height - padding.bottom}"></line>
+                <line class="history-axis" x1="${padding.left}" y1="${height - padding.bottom}" x2="${width - padding.right}" y2="${height - padding.bottom}"></line>
+                ${labels}
+                ${lines}
+            </svg>
+        `;
+    }
+
+    function getChartTicks(maxPoints) {
+        if (maxPoints <= 0) {
+            return [0];
+        }
+
+        const step = Math.max(1, Math.ceil(maxPoints / 4));
+        const ticks = [];
+        for (let value = 0; value <= maxPoints; value += step) {
+            ticks.push(value);
+        }
+        if (ticks[ticks.length - 1] !== maxPoints) {
+            ticks.push(maxPoints);
+        }
+        return ticks;
+    }
+
+    function getHistoryColor(index) {
+        return HISTORY_COLORS[index % HISTORY_COLORS.length];
     }
 
     async function loadData() {
