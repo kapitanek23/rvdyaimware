@@ -109,6 +109,7 @@ button {
 
 .auth-panel,
 .ranking-panel,
+.daily-picks-panel,
 .filters-bar,
 .summary-strip,
 .message-bar,
@@ -120,7 +121,8 @@ button {
 }
 
 .auth-panel,
-.ranking-panel {
+.ranking-panel,
+.daily-picks-panel {
     padding: 16px;
 }
 
@@ -342,6 +344,119 @@ select:focus {
 .history-button:focus-visible {
     background: rgba(244, 201, 93, 0.17);
     outline: 1px solid rgba(244, 201, 93, 0.42);
+}
+
+.daily-picks-nav {
+    display: grid;
+    grid-template-columns: 34px 1fr 34px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.daily-picks-nav strong {
+    color: #f8fafc;
+    font-size: 0.95rem;
+    font-weight: 900;
+    text-align: center;
+}
+
+.daily-picks-arrow {
+    display: grid;
+    place-items: center;
+    height: 34px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: #171d24;
+    color: #f8fafc;
+    cursor: pointer;
+    font-size: 1.25rem;
+    font-weight: 900;
+}
+
+.daily-picks-arrow:disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
+}
+
+.daily-picks-arrow:not(:disabled):hover,
+.daily-picks-arrow:not(:disabled):focus-visible {
+    border-color: rgba(110, 231, 183, 0.42);
+    background: #1c2631;
+    outline: none;
+}
+
+.daily-picks-list {
+    display: grid;
+    gap: 10px;
+}
+
+.daily-pick-card {
+    display: grid;
+    gap: 7px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-left: 4px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    background: #0f1319;
+}
+
+.daily-pick-card.best {
+    border-left-color: rgba(110, 231, 183, 0.72);
+    background: linear-gradient(90deg, rgba(20, 83, 45, 0.2), #0f1319 45%);
+}
+
+.daily-pick-card.worst {
+    border-left-color: rgba(248, 113, 113, 0.66);
+    background: linear-gradient(90deg, rgba(127, 29, 29, 0.18), #0f1319 45%);
+}
+
+.daily-pick-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #aab4bf;
+    font-size: 0.74rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.daily-pick-card.best .daily-pick-title span {
+    color: #86efac;
+}
+
+.daily-pick-card.worst .daily-pick-title span {
+    color: #fca5a5;
+}
+
+.daily-pick-player {
+    overflow: hidden;
+    color: #f8fafc;
+    font-size: 1rem;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.daily-pick-score {
+    color: #f4c95d;
+    font-size: 1.45rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.daily-pick-meta {
+    display: grid;
+    gap: 3px;
+    color: #8c98a6;
+    font-size: 0.74rem;
+    font-weight: 800;
+}
+
+.daily-pick-empty {
+    color: #8c98a6;
+    font-size: 0.82rem;
+    font-weight: 800;
 }
 
 .filters-bar {

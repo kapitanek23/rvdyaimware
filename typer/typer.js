@@ -87,6 +87,9 @@
         rankingHistoryRows: [],
         rankingHistorySelectedPlayers: new Set(),
         rankingHistoryFiltersReady: false,
+        dailyPickDays: [],
+        dailyPicksByDay: new Map(),
+        selectedDailyPickDay: null,
         filters: {
             search: '',
             stage: 'all',
@@ -109,6 +112,10 @@
             closePlayerProfile: document.getElementById('close-player-profile'),
             closeRankingHistory: document.getElementById('close-ranking-history'),
             currentNick: document.getElementById('current-nick'),
+            dailyPicksDate: document.getElementById('daily-picks-date'),
+            dailyPicksList: document.getElementById('daily-picks-list'),
+            dailyPicksNext: document.getElementById('daily-picks-next'),
+            dailyPicksPrev: document.getElementById('daily-picks-prev'),
             groupFilter: document.getElementById('group-filter'),
             infoButton: document.getElementById('info-button'),
             infoModal: document.getElementById('info-modal'),
@@ -155,6 +162,7 @@
         await loadMatchStatuses();
         await loadMatchSettlements();
         await loadRanking();
+        await loadDailyPicks();
         renderMatches();
     }
 
@@ -167,6 +175,12 @@
         });
         elements.logoutButton.addEventListener('click', logout);
         elements.refreshRanking.addEventListener('click', refreshRankingAndSettlements);
+        elements.dailyPicksPrev.addEventListener('click', function () {
+            moveDailyPicksDay(-1);
+        });
+        elements.dailyPicksNext.addEventListener('click', function () {
+            moveDailyPicksDay(1);
+        });
         elements.infoButton.addEventListener('click', openInfoModal);
         elements.closeInfo.addEventListener('click', closeInfoModal);
         elements.closePlayerProfile.addEventListener('click', closePlayerProfileModal);
@@ -1538,6 +1552,7 @@
     async function refreshRankingAndSettlements() {
         await loadMatchSettlements();
         await loadRanking();
+        await loadDailyPicks();
         renderMatches();
     }
 
@@ -1572,6 +1587,155 @@
                 </button>
             `;
         }).join('');
+    }
+
+    async function loadDailyPicks() {
+        state.dailyPickDays = [];
+        state.dailyPicksByDay.clear();
+
+        if (!sb) {
+            elements.dailyPicksDate.textContent = 'Brak połączenia';
+            elements.dailyPicksList.innerHTML = '<div class="empty-state">Brak połączenia z Supabase.</div>';
+            updateDailyPickArrows();
+            return;
+        }
+
+        const response = await sb.rpc('typer_get_daily_pick_extremes');
+        if (response.error) {
+            elements.dailyPicksDate.textContent = 'Typy dnia';
+            elements.dailyPicksList.innerHTML = '<div class="empty-state">Typy dnia czekają na aktualizację bazy.</div>';
+            updateDailyPickArrows();
+            console.warn('Typer daily picks unavailable:', response.error.message);
+            return;
+        }
+
+        (response.data || []).forEach(function (row) {
+            const dayKey = row.match_day;
+            if (!state.dailyPicksByDay.has(dayKey)) {
+                state.dailyPicksByDay.set(dayKey, {
+                    key: dayKey,
+                    label: row.day_label || dayKey,
+                    best: null,
+                    worst: null,
+                });
+            }
+
+            state.dailyPicksByDay.get(dayKey)[row.kind] = row;
+        });
+
+        state.dailyPickDays = Array.from(state.dailyPicksByDay.values()).sort(function (left, right) {
+            return left.key.localeCompare(right.key);
+        });
+
+        selectDefaultDailyPickDay();
+        renderDailyPicks();
+    }
+
+    function selectDefaultDailyPickDay() {
+        if (state.selectedDailyPickDay && state.dailyPicksByDay.has(state.selectedDailyPickDay)) {
+            return;
+        }
+
+        if (state.dailyPickDays.length === 0) {
+            state.selectedDailyPickDay = null;
+            return;
+        }
+
+        const yesterdayKey = formatDateKey(addDays(new Date(), -1));
+        const exactYesterday = state.dailyPickDays.find(function (day) {
+            return day.key === yesterdayKey;
+        });
+        if (exactYesterday) {
+            state.selectedDailyPickDay = exactYesterday.key;
+            return;
+        }
+
+        const pastDays = state.dailyPickDays.filter(function (day) {
+            return day.key <= yesterdayKey;
+        });
+        const fallbackDay = pastDays[pastDays.length - 1] || state.dailyPickDays[state.dailyPickDays.length - 1];
+        state.selectedDailyPickDay = fallbackDay.key;
+    }
+
+    function renderDailyPicks() {
+        if (state.dailyPickDays.length === 0 || !state.selectedDailyPickDay) {
+            elements.dailyPicksDate.textContent = 'Brak danych';
+            elements.dailyPicksList.innerHTML = '<div class="empty-state">Brak rozliczonych dni z typami.</div>';
+            updateDailyPickArrows();
+            return;
+        }
+
+        const day = state.dailyPicksByDay.get(state.selectedDailyPickDay);
+        elements.dailyPicksDate.textContent = day.label;
+        elements.dailyPicksList.innerHTML = `
+            ${renderDailyPickCard('best', day.best)}
+            ${renderDailyPickCard('worst', day.worst)}
+        `;
+        updateDailyPickArrows();
+    }
+
+    function renderDailyPickCard(kind, entry) {
+        const isBest = kind === 'best';
+        const title = isBest ? 'Najlepszy typ dnia' : 'Najgorszy typ dnia';
+        const icon = isBest ? '▲' : '▼';
+
+        if (!entry) {
+            return `
+                <article class="daily-pick-card ${isBest ? 'best' : 'worst'}">
+                    <div class="daily-pick-title"><span>${icon}</span>${title}</div>
+                    <div class="daily-pick-empty">Brak typu dla tego dnia.</div>
+                </article>
+            `;
+        }
+
+        return `
+            <article class="daily-pick-card ${isBest ? 'best' : 'worst'}">
+                <div class="daily-pick-title"><span>${icon}</span>${title}</div>
+                <div class="daily-pick-player">${escapeHtml(entry.player_nick)}</div>
+                <div class="daily-pick-score">${Number(entry.points) || 0} pkt</div>
+                <div class="daily-pick-meta">
+                    <span>${Number(entry.predictions_count) || 0}/${Number(entry.matches_count) || 0} meczów z typem</span>
+                    <span>Oddany: ${escapeHtml(formatDate(new Date(entry.submitted_at)))}</span>
+                </div>
+            </article>
+        `;
+    }
+
+    function moveDailyPicksDay(direction) {
+        const currentIndex = getSelectedDailyPickDayIndex();
+        const nextIndex = currentIndex + direction;
+        if (nextIndex < 0 || nextIndex >= state.dailyPickDays.length) {
+            return;
+        }
+
+        state.selectedDailyPickDay = state.dailyPickDays[nextIndex].key;
+        renderDailyPicks();
+    }
+
+    function getSelectedDailyPickDayIndex() {
+        return state.dailyPickDays.findIndex(function (day) {
+            return day.key === state.selectedDailyPickDay;
+        });
+    }
+
+    function updateDailyPickArrows() {
+        const selectedIndex = getSelectedDailyPickDayIndex();
+        const hasDays = state.dailyPickDays.length > 0 && selectedIndex !== -1;
+        elements.dailyPicksPrev.disabled = !hasDays || selectedIndex === 0;
+        elements.dailyPicksNext.disabled = !hasDays || selectedIndex === state.dailyPickDays.length - 1;
+    }
+
+    function addDays(date, days) {
+        const copy = new Date(date.getTime());
+        copy.setDate(copy.getDate() + days);
+        return copy;
+    }
+
+    function formatDateKey(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
     }
 
     function showMessage(message, type) {
