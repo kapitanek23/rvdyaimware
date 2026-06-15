@@ -87,6 +87,7 @@
         rankingHistoryRows: [],
         rankingHistorySelectedPlayers: new Set(),
         rankingHistoryFiltersReady: false,
+        rankingHistoryAxisMode: 'rank',
         dailyPickDays: [],
         dailyPicksByDay: new Map(),
         dailyPicksError: '',
@@ -498,12 +499,16 @@
             return Math.max(max, Number(row.points) || 0);
         }, 0);
 
+        const axisNote = state.rankingHistoryAxisMode === 'rank'
+            ? 'Wykres pokazuje pozycję w rankingu po każdym dniu z rozliczonymi meczami. Im wyżej linia, tym lepsze miejsce.'
+            : 'Wykres pokazuje sumę punktów po każdym dniu z rozliczonymi meczami. Dzień 0 to start gry.';
+
         elements.rankingHistoryBody.innerHTML = `
-            <p class="profile-note">Wykres pokazuje sumę punktów po każdym dniu z rozliczonymi meczami. Dzień 0 to start gry.</p>
+            <p class="profile-note">${escapeHtml(axisNote)}</p>
             ${renderRankingHistoryFilters(players, selectedPlayers, statsByPlayer, colorByPlayer, days)}
             ${selectedPlayers.length > 0 ? `
                 <div class="history-chart-wrap">
-                    ${renderRankingHistoryChart(days, selectedPlayers, pointsByPlayer, statsByPlayer, colorByPlayer, maxPoints)}
+                    ${renderRankingHistoryChart(days, selectedPlayers, statsByPlayer, colorByPlayer, maxPoints, players.length)}
                 </div>
             ` : '<div class="empty-state">Wybierz minimum jednego gracza, żeby pokazać wykres.</div>'}
             <div class="history-tooltip hidden" id="ranking-history-tooltip"></div>
@@ -620,6 +625,8 @@
                     <span>${selectedCount}/${players.length} wybranych</span>
                 </div>
                 <div class="history-actions">
+                    <button class="${state.rankingHistoryAxisMode === 'rank' ? 'active' : ''}" type="button" data-history-axis-mode="rank">Pozycje</button>
+                    <button class="${state.rankingHistoryAxisMode === 'points' ? 'active' : ''}" type="button" data-history-axis-mode="points">Punkty</button>
                     <button type="button" data-history-action="all">Wszyscy</button>
                     <button type="button" data-history-action="clear">Wyczyść</button>
                 </div>
@@ -641,7 +648,9 @@
         `;
     }
 
-    function renderRankingHistoryChart(days, players, pointsByPlayer, statsByPlayer, colorByPlayer, maxPoints) {
+    function renderRankingHistoryChart(days, players, statsByPlayer, colorByPlayer, maxPoints, totalPlayers) {
+        const axisMode = state.rankingHistoryAxisMode;
+        const isRankMode = axisMode === 'rank';
         const width = 1280;
         const height = 590;
         const padding = {
@@ -653,7 +662,8 @@
         const chartWidth = width - padding.left - padding.right;
         const chartHeight = height - padding.top - padding.bottom;
         const safeMaxPoints = Math.max(1, maxPoints);
-        const yTicks = getChartTicks(maxPoints);
+        const safeMaxRank = Math.max(1, totalPlayers);
+        const yTicks = isRankMode ? getRankTicks(safeMaxRank) : getChartTicks(maxPoints);
         const labelEvery = Math.max(1, Math.ceil(days.length / 8));
 
         function xForDay(dayIndex) {
@@ -667,11 +677,26 @@
             return padding.top + chartHeight - (points / safeMaxPoints) * chartHeight;
         }
 
+        function yForRank(rank) {
+            if (safeMaxRank === 1) {
+                return padding.top + chartHeight / 2;
+            }
+            return padding.top + ((rank - 1) / (safeMaxRank - 1)) * chartHeight;
+        }
+
+        function yForValue(statsOrPoints) {
+            if (isRankMode) {
+                return yForRank(statsOrPoints.rank);
+            }
+            return yForPoints(statsOrPoints.points);
+        }
+
         const grid = yTicks.map(function (tick) {
-            const y = yForPoints(tick);
+            const y = isRankMode ? yForRank(tick) : yForPoints(tick);
+            const label = isRankMode ? '#' + tick : tick;
             return `
                 <line class="history-grid" x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}"></line>
-                <text class="history-axis-label" x="${padding.left - 10}" y="${y + 4}" text-anchor="end">${tick}</text>
+                <text class="history-axis-label" x="${padding.left - 10}" y="${y + 4}" text-anchor="end">${label}</text>
             `;
         }).join('');
 
@@ -683,20 +708,17 @@
             return `<text class="history-axis-label" x="${x}" y="${height - 22}" text-anchor="middle">${escapeHtml(day.label)}</text>`;
         }).join('');
 
-        const endLabels = getHistoryEndLabels(days, players, pointsByPlayer, statsByPlayer, colorByPlayer, yForPoints, width, height, padding);
+        const endLabels = getHistoryEndLabels(days, players, statsByPlayer, colorByPlayer, yForValue, width, height, padding);
         const lines = players.map(function (player) {
-            const pointsMap = pointsByPlayer.get(player);
-            const points = days.map(function (day) {
-                return pointsMap.get(day.index) || 0;
-            });
             const color = colorByPlayer.get(player);
             const polyline = days.map(function (day, dayIndex) {
-                return xForDay(dayIndex) + ',' + yForPoints(points[dayIndex]);
+                const stats = statsByPlayer.get(player).get(day.index);
+                return xForDay(dayIndex) + ',' + yForValue(stats);
             }).join(' ');
             const circles = days.map(function (day, dayIndex) {
                 const x = xForDay(dayIndex);
-                const y = yForPoints(points[dayIndex]);
                 const stats = statsByPlayer.get(player).get(day.index);
+                const y = yForValue(stats);
                 return `<circle class="history-point history-tooltip-target" cx="${x}" cy="${y}" r="5" fill="${color}" ${getHistoryTooltipAttributes(player, stats)}></circle>`;
             }).join('');
 
@@ -709,16 +731,17 @@
             `;
         }).join('');
         const endLabelMarkup = endLabels.map(function (label) {
+            const labelValue = isRankMode ? '#' + label.stats.rank : label.stats.points;
             return `
                 <g class="history-end-label history-tooltip-target" ${getHistoryTooltipAttributes(label.player, label.stats)}>
                     <line x1="${label.pointX + 8}" y1="${label.pointY}" x2="${label.x - 8}" y2="${label.y - 4}" stroke="${label.color}"></line>
-                    <text x="${label.x}" y="${label.y}" fill="${label.color}">${escapeHtml(label.player)} ${label.stats.points}</text>
+                    <text x="${label.x}" y="${label.y}" fill="${label.color}">${escapeHtml(label.player)} ${labelValue}</text>
                 </g>
             `;
         }).join('');
 
         return `
-            <svg class="history-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Historia punktów w rankingu">
+            <svg class="history-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="${isRankMode ? 'Historia pozycji w rankingu' : 'Historia punktów w rankingu'}">
                 <rect class="history-chart-bg" x="0" y="0" width="${width}" height="${height}"></rect>
                 ${grid}
                 <line class="history-axis" x1="${padding.left}" y1="${padding.top}" x2="${padding.left}" y2="${height - padding.bottom}"></line>
@@ -730,13 +753,13 @@
         `;
     }
 
-    function getHistoryEndLabels(days, players, pointsByPlayer, statsByPlayer, colorByPlayer, yForPoints, width, height, padding) {
+    function getHistoryEndLabels(days, players, statsByPlayer, colorByPlayer, yForValue, width, height, padding) {
         const finalDay = days[days.length - 1];
         const pointX = width - padding.right;
         const labelX = pointX + 18;
         const labels = players.map(function (player) {
-            const points = pointsByPlayer.get(player).get(finalDay.index) || 0;
-            const pointY = yForPoints(points);
+            const stats = statsByPlayer.get(player).get(finalDay.index);
+            const pointY = yForValue(stats);
             return {
                 player: player,
                 color: colorByPlayer.get(player),
@@ -744,7 +767,7 @@
                 pointY: pointY,
                 x: labelX,
                 y: pointY + 4,
-                stats: statsByPlayer.get(player).get(finalDay.index),
+                stats: stats,
             };
         }).sort(function (left, right) {
             return left.y - right.y;
@@ -780,6 +803,14 @@
     }
 
     function handleRankingHistoryClick(event) {
+        const axisButton = event.target.closest('[data-history-axis-mode]');
+        if (axisButton && elements.rankingHistoryBody.contains(axisButton)) {
+            state.rankingHistoryAxisMode = axisButton.dataset.historyAxisMode === 'points' ? 'points' : 'rank';
+            hideRankingHistoryTooltip();
+            renderRankingHistory();
+            return;
+        }
+
         const actionButton = event.target.closest('[data-history-action]');
         if (!actionButton || !elements.rankingHistoryBody.contains(actionButton)) {
             return;
@@ -933,6 +964,28 @@
         }
         if (ticks[ticks.length - 1] !== maxPoints) {
             ticks.push(maxPoints);
+        }
+        return ticks;
+    }
+
+    function getRankTicks(maxRank) {
+        if (maxRank <= 1) {
+            return [1];
+        }
+
+        if (maxRank <= 12) {
+            return Array.from({ length: maxRank }, function (_, index) {
+                return index + 1;
+            });
+        }
+
+        const step = Math.ceil(maxRank / 8);
+        const ticks = [];
+        for (let rank = 1; rank <= maxRank; rank += step) {
+            ticks.push(rank);
+        }
+        if (ticks[ticks.length - 1] !== maxRank) {
+            ticks.push(maxRank);
         }
         return ticks;
     }
@@ -1812,6 +1865,8 @@
             `;
         }
 
+        const firstSubmittedAt = entry.submitted_at ? formatDate(new Date(entry.submitted_at)) : 'Brak daty zapisu';
+
         return `
             <article class="daily-pick-card ${isBest ? 'best' : 'worst'}">
                 <div class="daily-pick-title"><span>${icon}</span>${title}</div>
@@ -1819,7 +1874,7 @@
                 <div class="daily-pick-score">${Number(entry.points) || 0} pkt</div>
                 <div class="daily-pick-meta">
                     <span>${Number(entry.predictions_count) || 0}/${Number(entry.matches_count) || 0} meczów z typem</span>
-                    <span>Oddany: ${escapeHtml(formatDate(new Date(entry.submitted_at)))}</span>
+                    <span>Pierwszy zapis typu: ${escapeHtml(firstSubmittedAt)}</span>
                 </div>
             </article>
         `;

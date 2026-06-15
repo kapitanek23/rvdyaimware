@@ -1074,6 +1074,12 @@ select:focus {
     outline: none;
 }
 
+.history-actions button.active {
+    border-color: rgba(110, 231, 183, 0.52);
+    background: rgba(20, 83, 45, 0.28);
+    color: #d1fae5;
+}
+
 .history-player-filters {
     display: flex;
     flex-wrap: wrap;
