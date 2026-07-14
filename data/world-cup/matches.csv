@@ -99,3 +99,5 @@ id,match_number,home_team_id,away_team_id,city_id,stage_id,kickoff_at,match_labe
 98,98,31,27,6,4,2026-07-10 21:00:00+02,Quarterfinals
 99,99,36,47,7,4,2026-07-11 23:00:00+02,Quarterfinals
 100,100,37,8,5,4,2026-07-12 03:00:00+02,Quarterfinals
+101,101,33,31,3,5,2026-07-14 21:00:00+02,Semifinals
+102,102,47,37,1,5,2026-07-15 21:00:00+02,Semifinals
